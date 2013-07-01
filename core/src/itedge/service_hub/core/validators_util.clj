@@ -127,19 +127,19 @@
   [attributes entity-handler sooner-key later-key]
   (let [sooner (sooner-key attributes)
         later (later-key attributes)
+        converted-sooner (when sooner (date-time-util/iso-8061-to-datetime sooner))
+        converted-later (when later (date-time-util/iso-8061-to-datetime later))
         decision-fn (fn [sooner-dat later-dat]
                       (when (.isBefore later-dat (.plusMinutes sooner-dat 1))
                         (util/get-service-result :conflict "there is conflict in date-times chronology")))]
-    (let [converted-sooner (when sooner (date-time-util/iso-8061-to-datetime sooner))
-          converted-later (when later (date-time-util/iso-8061-to-datetime later))]
-      (if (and converted-sooner converted-later)
-        (decision-fn converted-sooner converted-later))
-		    (when-let [id ((handle-get-unique-identifier entity-handler) attributes)]
-		      (let [attributes (handle-find-entity entity-handler id)
-                converted-sooner (or converted-sooner (sooner-key attributes))
-                converted-later (or converted-later (later-key attributes))]
-            (if (and converted-sooner converted-later)
-              (decision-fn converted-sooner converted-later)))))))
+    (if (and converted-sooner converted-later)
+      (decision-fn converted-sooner converted-later)
+	    (when-let [id ((handle-get-unique-identifier entity-handler) attributes)]
+	      (let [attributes (handle-find-entity entity-handler id)
+              converted-sooner (or converted-sooner (sooner-key attributes))
+              converted-later (or converted-later (later-key attributes))]
+          (if (and converted-sooner converted-later)
+            (decision-fn converted-sooner converted-later)))))))
 
 (defn validate-iso-date-times
   "Validates date-time fields if they conform to ISO-8061 specification"

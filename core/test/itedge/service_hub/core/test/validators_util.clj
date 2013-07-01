@@ -2,7 +2,8 @@
   (:use itedge.service-hub.core.validators-util
         itedge.service-hub.core.handlers
         clojure.test)
-  (:require [itedge.service-hub.core.util :as util]))
+  (:require [itedge.service-hub.core.util :as util]
+            [itedge.service-hub.core.date-time-util :as date-time-util]))
 
 (defn compare-fn [v expression-map]
   (let [expression (if (map? expression-map) (first expression-map) (first {:value expression-map}))
@@ -46,9 +47,12 @@
   (handle-get-unique-identifier [_]
     :id))
 
-(def test-entity-handler (->TestEntityHandler {1 {:id 1 :name "test-entity-one" :thing 2 :linked nil :updated "2013-07-01T22:15:00.000+02:00"}
-                                               2 {:id 2 :name "test-entity-two" :thing 5 :linked 1 :updated "2013-07-01T22:15:00.000+02:00"}
-                                               3 {:id 3 :name "test-entity-three" :thing 7 :linked nil :updated "2013-07-01T22:15:00.000+02:00"}}))
+(def test-entity-handler (->TestEntityHandler {1 {:id 1 :name "test-entity-one" :thing 2 :linked nil 
+                                                  :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
+                                               2 {:id 2 :name "test-entity-two" :thing 5 :linked 1 
+                                                  :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
+                                               3 {:id 3 :name "test-entity-three" :thing 7 :linked nil 
+                                                  :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}}))
 
 (deftest test-validate-insert-fields
   (is (= (validate-insert-fields {:a 1 :b 2 :c 3} #{:a :b}) nil))
@@ -124,9 +128,20 @@
 (deftest test-validate-date-times-chronology
   (is (= (validate-date-times-chronology {:first "2013-06-28T22:15:00.000+02:00" 
                                           :second "2013-07-01T22:15:00.000+02:00"} test-entity-handler :first :second) nil))
-  (is (= (validate-date-times-chronology {:first "2013-11-28T22:15:00.000+02:00" 
+  (is (= (validate-date-times-chronology {:id 1 :created "2013-06-28T22:15:00.000+02:00"} 
+                                         test-entity-handler :created :updated) nil))
+  (is (= (validate-date-times-chronology {:first "2013-07-28T22:15:00.000+02:00" 
                                           :second "2013-07-01T22:15:00.000+02:00"} test-entity-handler :first :second)
-         (util/get-service-result :conflict "there is conflict in date-times chronology"))))  
-  ;(is (= (validate-date-times-chronology {:id 1 :created "2013-06-28T22:15:00.000+02:00"} 
-  ;                                       test-entity-handler :created :updated)
-  ;       (util/get-service-result :conflict "there is conflict in date-times chronology"))))
+         (util/get-service-result :conflict "there is conflict in date-times chronology"))) 
+  (is (= (validate-date-times-chronology {:id 1 :created "2013-07-28T22:15:00.000+02:00"} 
+                                         test-entity-handler :created :updated)
+         (util/get-service-result :conflict "there is conflict in date-times chronology"))))
+
+(deftest test-validate-iso-date-times
+  (is (= (validate-iso-date-times {:a "2013-06-28T22:15:00.000+02:00" 
+                                   :b "2013-07-01T22:15:00.000+02:00" 
+                                   :c "field"} #{:a :b}) nil))
+  (is (= (validate-iso-date-times {:a "2013-06-28T22:15:00.000+02:00" 
+                                   :b "2013-07-01T22:1cc" 
+                                   :c "field"} #{:a :b})
+         (util/get-service-result :conflict "some date-time fields don't conform to ISO-8061 specification"))))
