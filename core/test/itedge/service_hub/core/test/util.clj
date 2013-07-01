@@ -1,0 +1,31 @@
+(ns itedge.service-hub.core.test.util
+  (:use itedge.service-hub.core.util
+        clojure.test))
+
+(deftest test-in?
+  (is (= (in? [1 2 3 4 5] 2) true))
+  (is (= (in? [1 2 3 4 5] 7) nil)))
+
+(deftest test-update-map-values
+  (is (= (update-map-values {:a 1 :b 2} inc) {:a 2 :b 3})))
+
+(deftest test-parse-number
+  (is (= (parse-number "0.1") 0.1))
+  (is (= (parse-number "1") 1))
+  (is (= (parse-number "1a") nil)))
+
+(deftest test-abs
+  (is (= (abs -1) 1))
+  (is (= (abs 0) 0))
+  (is (= (abs 1) 1)))
+
+(deftest test-get-service-result
+  (is (= (get-service-result 1 "test result") {:return-code 1 :message "test result"})))
+
+(deftest test-pipeline-functions
+  (is (= (pipeline-functions ((fn [] nil)) ((fn [] :ok))) :ok))
+  (is (= (pipeline-functions ((fn [] nil)) ((fn [] nil))) nil))
+  (is (= (pipeline-functions nil) nil)))
+
+
+
