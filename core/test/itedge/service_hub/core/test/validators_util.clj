@@ -2,57 +2,17 @@
   (:use itedge.service-hub.core.validators-util
         itedge.service-hub.core.handlers
         clojure.test)
-  (:require [itedge.service-hub.core.util :as util]
+  (:require [itedge.service-hub.core.handlers-memory :as handlers-memory]
+            [itedge.service-hub.core.util :as util]
             [itedge.service-hub.core.date-time-util :as date-time-util]))
 
-(defn compare-fn [v expression-map]
-  (let [expression (if (map? expression-map) (first expression-map) (first {:value expression-map}))
-        function-key (key expression)
-        compare-value (val expression)
-        compare-function (function-key {:not not=
-										                    :not-in (fn [v c-v] (not (util/in? c-v v)))
-                                        :in (fn [v c-v] (util/in? c-v v))
-										                    :gt > 
-										                    :lt <
-										                    :gteq >=
-										                    :lteq <=
-                                        :value =})]
-    (compare-function v compare-value)))
-
-(defn filter-fn [criteria]
-	(fn [map-entry]
-    (if criteria
-      (let [v (val map-entry)]
-        (every? (fn [e] (compare-fn ((key e) v) (val e))) criteria))
-      true)))
-
-(deftype TestEntityHandler [entity-map]
-  PEntityHandler
-  (handle-find-entity [_ id]
-    (get entity-map id))
-  (handle-exist-entity [this id]
-    (if (get entity-map id)
-      true
-      false))
-  (handle-delete-entity [this id]
-    ) ; not implemented
-  (handle-update-entity [this attributes]
-    ) ; not implemented
-  (handle-add-entity [this attributes]
-    ) ; not implemented
-  (handle-list-entities [_ criteria sort-attrs from to]
-    (into [] (map second (filter (filter-fn criteria) entity-map))))
-  (handle-count-entities [_ criteria]
-    (count (filter (filter-fn criteria) entity-map)))
-  (handle-get-unique-identifier [_]
-    :id))
-
-(def test-entity-handler (->TestEntityHandler {1 {:id 1 :name "test-entity-one" :thing 2 :linked nil 
-                                                  :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
-                                               2 {:id 2 :name "test-entity-two" :thing 5 :linked 1 
-                                                  :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
-                                               3 {:id 3 :name "test-entity-three" :thing 7 :linked nil 
-                                                  :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}}))
+(def test-entity-handler 
+  (handlers-memory/create-memory-handler [{:name "test-entity-one" :thing 2 :linked nil 
+                                           :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
+                                          {:name "test-entity-two" :thing 5 :linked 1 
+                                           :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
+                                          {:name "test-entity-three" :thing 7 :linked nil 
+                                           :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}] :id))
 
 (deftest test-validate-insert-fields
   (is (= (validate-insert-fields {:a 1 :b 2 :c 3} #{:a :b}) nil))

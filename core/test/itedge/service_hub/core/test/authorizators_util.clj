@@ -2,32 +2,10 @@
   (:use itedge.service-hub.core.authorizators-util
         itedge.service-hub.core.handlers
         clojure.test)
-  (:require [itedge.service-hub.core.util :as util]))
+  (:require [itedge.service-hub.core.handlers-memory :as handlers-memory] 
+            [itedge.service-hub.core.util :as util]))
 
-(deftype TestEntityHandler []
-  PEntityHandler
-  (handle-find-entity [_ id]
-    (if (= 1 id)
-      {:id 1 :name "test-entity" :users [1 2 3]}
-      nil))
-  (handle-exist-entity [this id]
-    (if (= 1 id)
-      true
-      false))
-  (handle-delete-entity [this id]
-    ) ; not implemented
-  (handle-update-entity [this attributes]
-    ) ; not implemented
-  (handle-add-entity [this attributes]
-    ) ; not implemented
-  (handle-list-entities [_ criteria sort-attrs from to]
-    [{:id 1 :name "test-entity" :users [1 2 3]}])
-  (handle-count-entities [_ criteria]
-    1)
-  (handle-get-unique-identifier [_]
-    :id))
-
-(def test-entity-handler (->TestEntityHandler))
+(def test-entity-handler (handlers-memory/create-memory-handler [{:name "test-entity" :users [1 2 3]}] :id))
 
 (deftest test-authenticated?
   (is (= (authenticated? {:id 1 :username "test" :roles #{:user :admin}}) nil))
