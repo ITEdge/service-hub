@@ -17,7 +17,8 @@
 	                                       ;   but basic is going to be used predominantly for API usage, so...
 	                                       ; TODO should figure out logging for widely-used library; just use tools.logging?
 	                                       (println "Invalid Authorization header for HTTP Basic auth: " authorization)
-	                                       (.printStackTrace e)))]
+	                                       ;(.printStackTrace e)
+                                        ))]
 	    (if-let [auth (credential-fn {:username username, :password password})]
 	      (assoc request :auth auth)
 	      (assoc request :auth :bad-credentials))
