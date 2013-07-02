@@ -5,3 +5,5 @@ pom.xml
 /targets/
 .lein-deps-sum
 /.project
+/target
+/.lein-failures
