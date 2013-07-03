@@ -18,6 +18,7 @@
         q-result-one (handle-list-entities test-handler {:thing 7} nil nil nil)
         q-result-two (handle-list-entities test-handler {:thing 7 :name "test-entity-two"} nil nil nil)]
     (is (= (handle-count-entities test-handler nil) 4))
+    (is (= (handle-count-entities test-handler {:thing 7}) 2))
     (is (= entity-one {:id 1 :name "test-entity-one" :thing 3}))
     (is (= entity-two {:id 2 :name "test-entity-two" :thing 7}))
     (is (= entity-three {:id 3 :name "test-entity-three" :thing 11}))

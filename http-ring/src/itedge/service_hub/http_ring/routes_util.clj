@@ -2,8 +2,25 @@
   (:use itedge.service-hub.core.services
         compojure.core)
   (:require [clojure.string :as string]
-            [itedge.service-hub.core.util :as util]
-            [itedge.service-hub.http-ring.content-util :as content-util]))
+            [itedge.service-hub.core.util :as util]))
+
+(defmulti body-string
+  "Return the request body as a string."
+  (comp class :body))
+
+(defmethod body-string nil [_] nil)
+
+(defmethod body-string String [request]
+  (:body request))
+
+(defmethod body-string clojure.lang.ISeq [request]
+  (apply str (:body request)))
+
+(defmethod body-string java.io.File [request]
+  (slurp (:body request)))
+
+(defmethod body-string java.io.InputStream [request]
+  (slurp (:body request)))
 
 (defn- parse-sort-args
   "Parses sort parameters from request in form 'sortParam=+param1,-param2' and
@@ -44,7 +61,8 @@
 
 (defn scaffold-crud-routes
   "Creates standard REST routes for all CRUD operations, taking root path, entity service
-   and entity primary key as attributes. Created paths for according http verbs are: 
+   content-read, content-write functions and entity primary key as attributes. 
+   Created paths for according http verbs are: 
    1. List   - 'GET path/' (uses sorting parameters from request if present)
    2. Get    - 'GET path/:id'
    3. Query  - 'GET path' (uses querying and sorting parameters from request if present)
@@ -55,15 +73,15 @@
    optionally passed in as fourth argument, corresponding functions will be then called with
    result of entity service call"
   {:added "EBS 1.0"}
-  ([path entity-service pk]
-    (scaffold-crud-routes path entity-service pk nil))
-  ([path entity-service pk post-fns]
+  ([path entity-service pk content-read content-write]
+    (scaffold-crud-routes path entity-service pk content-read content-write nil))
+  ([path entity-service pk content-read content-write post-fns]
    (routes (GET (str path "/") [:as request]
                (let [range (parse-range-headers request)
                      sort-args (parse-sort-args :sortBy (:params request))
                      auth (:auth request)
                      result (list-entities entity-service nil sort-args (:from range) (:to range) auth)]
-	               (-> (content-util/craft-json-response 
+	               (-> (content-write 
                    (-> (:message result)
 	                     ((:list post-fns identity))))
                    (create-status-code result)
@@ -71,7 +89,7 @@
            (GET [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [auth (:auth request)
                      result (find-entity entity-service (util/parse-number id) auth)]
-	               (-> (content-util/craft-json-response 
+	               (-> (content-write 
                    (-> (:message result)
                        ((:get post-fns identity))))
                    (create-status-code result))))
@@ -81,46 +99,46 @@
                      sort-args (parse-sort-args :sortBy params)
                      auth (:auth request)
                      result (list-entities entity-service params sort-args (:from range) (:to range) auth)]
-                 (-> (content-util/craft-json-response
+                 (-> (content-write
                    (-> (:message result)
                        ((:query post-fns identity))))
                    (create-status-code result)
                    (create-content-range-headers result))))
            (PUT [(str path "/:id"), :id #"[0-9]+"] [id :as request]
-               (let [attributes (assoc (content-util/read-json (slurp (:body request))) pk (util/parse-number id))
+               (let [attributes (assoc (content-read (body-string request)) pk (util/parse-number id))
                      auth (:auth request)
                      result (update-entity entity-service attributes auth)]
-	               (-> (content-util/craft-json-response
+	               (-> (content-write
                    (-> (:message result)
                        ((:update post-fns identity))))
                    (create-status-code result))))
            (POST path [:as request]
-               (let [attributes (content-util/read-json (slurp (:body request)))
+               (let [attributes (content-read (body-string request))
                      auth (:auth request)
                      result (add-entity entity-service attributes auth)] 
-	               (-> (content-util/craft-json-response
+	               (-> (content-write
                    (-> (:message result)
                        ((:create post-fns identity))))
                    (create-status-code result))))
            (DELETE [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [auth (:auth request)
                      result (delete-entity entity-service (util/parse-number id) auth)]   
-	               (-> (content-util/craft-json-response
+	               (-> (content-write
                    (-> (:message result)
                        ((:delete post-fns identity))))
                    (create-status-code result)))))))
 
 (defn deny-request 
   "Deny request with specified reason"
-  [reason]
-  (-> (content-util/craft-json-response reason)
+  [reason content-write]
+  (-> (content-write reason)
     (assoc :status 401)))
 
 (defn check-auth
   "Checks authentication info, if it's map, authentication is valid and authentication map is returned as response, 
    deny otherwise"
   {:added "EBS 1.0"}
-  [{auth :auth}]
+  [{auth :auth} content-write]
   (if (map? auth)
-    (content-util/craft-json-response auth)
+    (content-write auth)
     (deny-request auth)))

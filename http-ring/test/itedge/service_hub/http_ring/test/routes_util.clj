@@ -2,14 +2,11 @@
   (:use itedge.service-hub.core.handlers
         itedge.service-hub.core.services
         itedge.service-hub.http-ring.routes-util
-        itedge.service-hub.http-ring.middleware.translate-params
         compojure.core
-        [ring.middleware params
-                         keyword-params
-                         nested-params]
         clojure.test)
   (:require [itedge.service-hub.core.handlers-memory :as handlers-memory]
-            [itedge.service-hub.core.services-util :as services-util]))
+            [itedge.service-hub.core.services-util :as services-util]
+            [itedge.service-hub.http-ring.content-util :as content-util]))
 
 (def test-handler (handlers-memory/create-memory-handler [{:name "test-entity-one" :thing 2}
                                                           {:name "test-entity-two" :thing 7}
@@ -43,22 +40,22 @@
 (def test-service (->TestService test-handler))
 
 (defroutes test-routes
-  (scaffold-crud-routes "/tests" test-service :id))
-
-(def test-app
-  (-> test-routes
-    (wrap-translate-params)
-    (wrap-keyword-params)
-    (wrap-nested-params)
-    (wrap-params)))
+  (scaffold-crud-routes "/tests" test-service :id content-util/read-json content-util/craft-json-response))
 
 (deftest test-scaffolded-routes
-  (let [response (test-app {:request-method :get :uri "/tests/1"})]
-    (is (= response {:status 200 
-                     :headers {"Content-Type" "application/json"}
-                     :body "{\"name\":\"test-entity-one\",\"thing\":2,\"id\":1}"})))
-  (let [response (test-app {:request-method :get :uri "/testss/1"})]
-    (is (= response nil))))
+  (is (= (test-routes {:request-method :get :uri "/tests/1"}) 
+         {:status 200 :headers {"Content-Type" "application/json"} 
+          :body "{\"name\":\"test-entity-one\",\"thing\":2,\"id\":1}"}))
+  (is (= (test-routes {:request-method :get :uri "/testss/1"}) nil))
+  (is (= (test-routes {:request-method :post :uri "/tests" :body "{\"name\":\"test-entity-five\",\"thing\":11}"})
+         {:status 200 :headers {"Content-Type" "application/json"} 
+          :body "{\"id\":5,\"name\":\"test-entity-five\",\"thing\":11}"}))
+  (is (= (:headers (test-routes {:request-method :get :uri "/tests/"}))
+         {"Content-Type" "application/json"
+          "Content-Range" "items 0-4/5"}))
+  (is (= (test-routes {:request-method :get :uri "/tests" :params {:name "test-entity-five"}})
+         {:status 200 :headers {"Content-Type" "application/json" "Content-Range" "items 0-0/1"}
+          :body "[{\"id\":5,\"name\":\"test-entity-five\",\"thing\":11}]"})))
 
 
 
