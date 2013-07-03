@@ -55,7 +55,27 @@
           "Content-Range" "items 0-4/5"}))
   (is (= (test-routes {:request-method :get :uri "/tests" :params {:name "test-entity-five"}})
          {:status 200 :headers {"Content-Type" "application/json" "Content-Range" "items 0-0/1"}
-          :body "[{\"id\":5,\"name\":\"test-entity-five\",\"thing\":11}]"})))
+          :body "[{\"id\":5,\"name\":\"test-entity-five\",\"thing\":11}]"}))
+  (is (= (test-routes {:request-method :put :uri "/tests/1" :body "{\"thing\":1}"})
+         {:status 200 :headers {"Content-Type" "application/json"} 
+          :body "{\"name\":\"test-entity-one\",\"thing\":1,\"id\":1}"}))
+  (is (= (test-routes {:request-method :delete :uri "/tests/5"})
+         {:status 204 :headers {"Content-Type" "application/json"} 
+          :body "5"}))
+  (is (= (:headers (test-routes {:request-method :get :uri "/tests/"}))
+         {"Content-Type" "application/json"
+          "Content-Range" "items 0-3/4"})))
+
+(deftest test-deny-request
+  (= (deny-request "test reason" content-util/craft-json-response)
+     {:status 401 :headers {"Content-Type" "application/json"} :body "test reason"}))
+
+(deftest test-check-auth
+  (= (check-auth {:username "test" :password "test"} content-util/craft-json-response)
+     {:status 200 :headers {"Content-Type" "application/json"} 
+      :body "{\"username\":\"test\",\"password\":\"test\"}"})
+  (= (check-auth "bad credentials" content-util/craft-json-response)
+     (deny-request "bad credentials" content-util/craft-json-response)))
 
 
 

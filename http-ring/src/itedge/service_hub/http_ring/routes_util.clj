@@ -141,4 +141,4 @@
   [{auth :auth} content-write]
   (if (map? auth)
     (content-write auth)
-    (deny-request auth)))
+    (deny-request auth content-write)))
