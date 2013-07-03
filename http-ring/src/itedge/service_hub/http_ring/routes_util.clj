@@ -2,7 +2,7 @@
   (:use itedge.service-hub.core.services
         compojure.core)
   (:require [clojure.string :as string]
-            [itedge.service-hub.core :as util]
+            [itedge.service-hub.core.util :as util]
             [itedge.service-hub.http-ring.content-util :as content-util]))
 
 (defn- parse-sort-args
@@ -70,7 +70,7 @@
                    (create-content-range-headers result))))
            (GET [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [auth (:auth request)
-                     result (find-entity entity-service id auth)]
+                     result (find-entity entity-service (util/parse-number id) auth)]
 	               (-> (content-util/craft-json-response 
                    (-> (:message result)
                        ((:get post-fns identity))))
@@ -87,7 +87,7 @@
                    (create-status-code result)
                    (create-content-range-headers result))))
            (PUT [(str path "/:id"), :id #"[0-9]+"] [id :as request]
-               (let [attributes (assoc (util/read-json (slurp (:body request))) pk id)
+               (let [attributes (assoc (content-util/read-json (slurp (:body request))) pk (util/parse-number id))
                      auth (:auth request)
                      result (update-entity entity-service attributes auth)]
 	               (-> (content-util/craft-json-response
@@ -95,7 +95,7 @@
                        ((:update post-fns identity))))
                    (create-status-code result))))
            (POST path [:as request]
-               (let [attributes (util/read-json (slurp (:body request)))
+               (let [attributes (content-util/read-json (slurp (:body request)))
                      auth (:auth request)
                      result (add-entity entity-service attributes auth)] 
 	               (-> (content-util/craft-json-response
@@ -104,7 +104,7 @@
                    (create-status-code result))))
            (DELETE [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [auth (:auth request)
-                     result (delete-entity entity-service id auth)]   
+                     result (delete-entity entity-service (util/parse-number id) auth)]   
 	               (-> (content-util/craft-json-response
                    (-> (:message result)
                        ((:delete post-fns identity))))
