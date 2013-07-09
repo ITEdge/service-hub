@@ -23,4 +23,6 @@
     (is (= entity-two {:id 2 :name "test-entity-two" :thing 7}))
     (is (= entity-three {:id 3 :name "test-entity-three" :thing 11}))
     (is (= q-result-one [{:id 4 :name "test-entity-four" :thing 7} {:id 2 :name "test-entity-two" :thing 7}]))
-    (is (= q-result-two [{:id 2 :name "test-entity-two" :thing 7}]))))
+    (is (= q-result-two [{:id 2 :name "test-entity-two" :thing 7}]))
+    (is (= (handle-delete-entity test-handler 4) 4))
+    (is (= (handle-count-entities test-handler nil) 3))))
