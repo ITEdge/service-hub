@@ -3,6 +3,7 @@
   :sub ["core"
         "common"
         "persistence-korma"
-        "persistence-datomic"
+        ;"persistence-datomic"
         "http-ring"
-        "http-pedestal"])
+        ;"http-pedestal"
+        ])
