@@ -7,9 +7,9 @@
             [itedge.service-hub.core.date-time-util :as date-time-util]))
 
 (def test-entity-handler 
-  (handlers-memory/create-memory-handler [{:name "test-entity-one" :thing 2 :linked nil 
+  (handlers-memory/create-memory-handler [{:name "test-entity-one" :thing 2 :linked nil :things [2 3]
                                            :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
-                                          {:name "test-entity-two" :thing 5 :linked 1 
+                                          {:name "test-entity-two" :thing 5 :linked 1 :things [1]
                                            :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
                                           {:name "test-entity-three" :thing 7 :linked nil 
                                            :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}] :id))
@@ -59,7 +59,10 @@
 
 (deftest test-validate-delete-relations
   (is (= (validate-delete-relations 1 :thing test-entity-handler) nil))
+  (is (= (validate-delete-relations 4 :things test-entity-handler) nil))
   (is (= (validate-delete-relations 7 :thing test-entity-handler) 
+         (util/get-service-result :conflict "entity requested for deletion has mandatory relations to other entities")))
+  (is (= (validate-delete-relations 1 :things test-entity-handler)
          (util/get-service-result :conflict "entity requested for deletion has mandatory relations to other entities"))))
 
 (deftest test-validate-list-range

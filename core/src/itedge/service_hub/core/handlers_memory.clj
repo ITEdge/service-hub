@@ -11,14 +11,14 @@
   (let [expression (if (map? expression-map) (first expression-map) (first {:value expression-map}))
         function-key (key expression)
         compare-value (val expression)
-        compare-function (function-key {:not not=
+        compare-function (function-key {:not (fn [v c-v] (if (coll? v) (not (util/in? v c-v)) (not= v c-v)))
 										                    :not-in (fn [v c-v] (not (util/in? c-v v)))
                                         :in (fn [v c-v] (util/in? c-v v))
 										                    :gt > 
 										                    :lt <
 										                    :gteq >=
 										                    :lteq <=
-                                        :value =})]
+                                        :value (fn [v c-v] (if (coll? v) (util/in? v c-v) (= v c-v)))})]
     (compare-function v compare-value)))
 
 (defn- filter-fn [criteria]
