@@ -22,10 +22,10 @@
 (deftest test-get-service-result
   (is (= (get-service-result 1 "test result") {:return-code 1 :message "test result"})))
 
-(deftest test-pipeline-functions
-  (is (= (pipeline-functions ((fn [] nil)) ((fn [] :ok))) :ok))
-  (is (= (pipeline-functions ((fn [] nil)) ((fn [] nil))) nil))
-  (is (= (pipeline-functions nil) nil)))
+(deftest test-pipeline-statements
+  (is (= (pipeline-statements ((fn [] nil)) ((fn [] :ok))) :ok))
+  (is (= (pipeline-statements ((fn [] nil)) ((fn [] nil))) nil))
+  (is (= (pipeline-statements nil) nil)))
 
 
 

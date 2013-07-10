@@ -32,13 +32,13 @@
   [result-code message]
   {:return-code result-code :message message})
 
-(defmacro pipeline-functions
-  "Executes functions in given order one after another, the first which returns non-nil response
-   will be returned (it's result), if every function returns nil response, returns nil on the end."
+(defmacro pipeline-statements
+  "Executes statements in given order one after another, the first which returns non-nil response
+   will be returned (it's result), if every statement returns nil response, returns nil on the end."
   {:added "EBS 1.0"}
   ([fn]
     `(let [result# ~fn]
        result#))
   ([fn & fns]
     `(let [result# ~fn]
-       (if (nil? result#) (pipeline-functions ~@fns) result#))))
+       (if (nil? result#) (pipeline-statements ~@fns) result#))))
