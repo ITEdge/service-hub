@@ -7,3 +7,4 @@ pom.xml
 /.project
 /target
 /.lein-failures
+/.lein-repl-history
