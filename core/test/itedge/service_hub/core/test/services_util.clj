@@ -1,7 +1,7 @@
 (ns itedge.service-hub.core.test.services-util
-  (:use itedge.service-hub.core.services-util
-        clojure.test)
-  (:require [itedge.service-hub.core.util :as util]))
+  (:require [itedge.service-hub.core.services-util :refer :all]
+            [clojure.test :refer :all]
+            [itedge.service-hub.core.util :as util]))
 
 (deftest test-handle-service-exception
   (let [result (handle-service-exception (Exception. "test"))]

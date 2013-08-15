@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.test.util
-  (:use itedge.service-hub.core.util
-        clojure.test))
+  (:require [itedge.service-hub.core.util :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest test-in?
   (is (= (in? [1 2 3 4 5] 2) true))

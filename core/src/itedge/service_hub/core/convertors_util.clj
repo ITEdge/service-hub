@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.convertors-util
-  (:use itedge.service-hub.core.convertors)
-  (:require [itedge.service-hub.core.util :as util]))
+  (:require [itedge.service-hub.core.convertors :refer :all]
+            [itedge.service-hub.core.util :as util]))
 
 (defn- convert-value
   "Converts specified value, if value is a map, recursivly update all map values"

@@ -1,7 +1,7 @@
 (ns itedge.service-hub.core.test.handlers-memory
-  (:use itedge.service-hub.core.handlers-memory
-        itedge.service-hub.core.handlers
-        clojure.test))
+  (:require [itedge.service-hub.core.handlers-memory :refer :all]
+            [itedge.service-hub.core.handlers :refer :all]
+            [clojure.test :refer :all]))
 
 (def test-handler (create-memory-handler [{:name "test-entity-one" :thing 2}
                                           {:name "test-entity-two" :thing 7}] :id))

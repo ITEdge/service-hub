@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.handlers-memory
-  (:use itedge.service-hub.core.handlers)
-  (:require [itedge.service-hub.core.util :as util]))
+  (:require [itedge.service-hub.core.handlers :refer :all]
+            [itedge.service-hub.core.util :as util]))
 
 (defn- index-data [data id-key index]
   (reduce (fn [acc item]

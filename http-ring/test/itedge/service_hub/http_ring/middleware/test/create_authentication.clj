@@ -1,6 +1,6 @@
 (ns itedge.service-hub.http-ring.middleware.test.create-authentication
-  (:use itedge.service-hub.http-ring.middleware.create-authentication
-        clojure.test))
+  (:require [itedge.service-hub.http-ring.middleware.create-authentication :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest test-wrap-create-authentication
   (let [credential-fn (fn [{username :username password :password :as auth}] 

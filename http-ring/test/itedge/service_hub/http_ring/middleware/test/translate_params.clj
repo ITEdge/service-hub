@@ -1,6 +1,6 @@
 (ns itedge.service-hub.http-ring.middleware.test.translate-params
-  (:use itedge.service-hub.http-ring.middleware.translate-params
-        clojure.test))
+  (:require [itedge.service-hub.http-ring.middleware.translate-params :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest test-wrap-translate-params
   (let [wrapped-handler (wrap-translate-params identity)

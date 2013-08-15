@@ -1,7 +1,7 @@
 (ns itedge.service-hub.http-ring.routes-util
-  (:use itedge.service-hub.core.services
-        compojure.core)
-  (:require [clojure.string :as string]
+  (:require [itedge.service-hub.core.services :refer :all]
+            [compojure.core :refer :all]
+            [clojure.string :as string]
             [itedge.service-hub.core.util :as util]))
 
 (defmulti body-string

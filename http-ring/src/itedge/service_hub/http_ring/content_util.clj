@@ -1,6 +1,6 @@
 (ns itedge.service-hub.http-ring.content-util
-  (:use ring.util.response)
-  (:require [clojure.data.json :as js]))
+  (:require [ring.util.response :refer :all]
+            [clojure.data.json :as js]))
 
 (defn craft-json-response
   "Creates json ring response map, jsonize first argument and adds content type"

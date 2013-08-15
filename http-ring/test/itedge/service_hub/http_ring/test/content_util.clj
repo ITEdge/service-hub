@@ -1,6 +1,6 @@
 (ns itedge.service-hub.http-ring.test.content-util
-  (:use itedge.service-hub.http-ring.content-util
-        clojure.test))
+  (:require [itedge.service-hub.http-ring.content-util :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest test-craft-json-response
   (let [{headers :headers body :body} (craft-json-response [{:a 1 :b 2} "test" nil])]

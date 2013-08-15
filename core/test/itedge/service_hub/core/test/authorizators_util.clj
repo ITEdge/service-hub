@@ -1,8 +1,8 @@
 (ns itedge.service-hub.core.test.authorizators-util
-  (:use itedge.service-hub.core.authorizators-util
-        itedge.service-hub.core.handlers
-        clojure.test)
-  (:require [itedge.service-hub.core.handlers-memory :as handlers-memory] 
+  (:require [itedge.service-hub.core.authorizators-util :refer :all]
+            [itedge.service-hub.core.handlers :refer :all]
+            [clojure.test :refer :all]
+            [itedge.service-hub.core.handlers-memory :as handlers-memory] 
             [itedge.service-hub.core.util :as util]))
 
 (def test-entity-handler (handlers-memory/create-memory-handler [{:name "test-entity" :users [1 2 3]}] :id))

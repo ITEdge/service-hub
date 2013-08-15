@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.test.date-time-util
-  (:use itedge.service-hub.core.date-time-util
-        clojure.test)
+  (:require [itedge.service-hub.core.date-time-util :refer :all]
+            [clojure.test :refer :all])
   (:import java.sql.Timestamp 
            org.joda.time.DateTime))
 
