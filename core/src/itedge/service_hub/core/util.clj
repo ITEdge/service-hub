@@ -5,7 +5,7 @@
 (defn in? 
   "True if seq contains elm"
   {:added "EBS 1.0"}
-  [seq elm]  
+  [seq elm]
   (some #(= elm %) seq))
 
 (defn update-map-values [m f]
