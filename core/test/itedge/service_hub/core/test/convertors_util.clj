@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.test.convertors-util
-  (:use itedge.service-hub.core.convertors-util
-        clojure.test))
+  (:require [itedge.service-hub.core.convertors-util :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest test-convert-specified-values
   (is (= (convert-specified-values nil #{:a :b} inc) nil))

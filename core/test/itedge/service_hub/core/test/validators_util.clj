@@ -1,8 +1,8 @@
 (ns itedge.service-hub.core.test.validators-util
-  (:use itedge.service-hub.core.validators-util
-        itedge.service-hub.core.handlers
-        clojure.test)
-  (:require [itedge.service-hub.core.handlers-memory :as handlers-memory]
+  (:require [itedge.service-hub.core.validators-util :refer :all]
+            [itedge.service-hub.core.handlers :refer :all]
+            [clojure.test :refer :all]
+            [itedge.service-hub.core.handlers-memory :as handlers-memory]
             [itedge.service-hub.core.util :as util]
             [itedge.service-hub.core.date-time-util :as date-time-util]))
 

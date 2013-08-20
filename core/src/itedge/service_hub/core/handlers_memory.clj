@@ -1,24 +1,48 @@
 (ns itedge.service-hub.core.handlers-memory
-  (:use itedge.service-hub.core.handlers)
-  (:require [itedge.service-hub.core.util :as util]))
+  (:require [itedge.service-hub.core.handlers :refer :all]
+            [itedge.service-hub.core.util :as util]))
 
 (defn- index-data [data id-key index]
   (reduce (fn [acc item]
             (let [next-id (swap! index inc)]
               (assoc acc next-id (assoc item id-key next-id)))) {} data))
+(comment
+(defn- wildcard-compare [wildcard-value compare-value]
+  (if (and (= (type wildcard-value) String) (= (type compare-value) String))
+    (cond
+	    (and 
+	      (.startsWith wildcard-value "*") 
+	      (.endsWith wildcard-value "*")) (if )
+	    (.startsWith wildcard-value "*")
+	    (.endsWith wildcard-value "*") 
+	    :else (= wildcard-value compare-value))
+    (= wildcard-value compare-value)))
+)
+
+(defn- not-compare [v c-v]
+  (if (coll? v) (not (util/in? v c-v)) (not= v c-v)))
+
+(defn- not-in-compare [v c-v]
+  (not (util/in? c-v v)))
+
+(defn- in-compare [v c-v]
+  (util/in? c-v v))
+
+(defn- compare [v c-v]
+  (if (coll? v) (util/in? v c-v) (= v c-v)))
 
 (defn- compare-fn [v expression-map]
   (let [expression (if (map? expression-map) (first expression-map) (first {:value expression-map}))
         function-key (key expression)
         compare-value (val expression)
-        compare-function (function-key {:not (fn [v c-v] (if (coll? v) (not (util/in? v c-v)) (not= v c-v)))
-										                    :not-in (fn [v c-v] (not (util/in? c-v v)))
-                                        :in (fn [v c-v] (util/in? c-v v))
+        compare-function (function-key {:not not-compare
+										                    :not-in not-in-compare
+                                        :in in-compare
 										                    :gt > 
 										                    :lt <
 										                    :gteq >=
 										                    :lteq <=
-                                        :value (fn [v c-v] (if (coll? v) (util/in? v c-v) (= v c-v)))})]
+                                        :value compare})]
     (compare-function v compare-value)))
 
 (defn- filter-fn [criteria]

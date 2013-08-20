@@ -8,9 +8,10 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defn update-map-values [m f]
+(defn update-map-values
   "Updates map values with provided fn"
   {:added "EBS 1.0"}
+  [m f]
   (into {} (for [[k v] m] [k (f v)])))
 
 (defn parse-number

@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.test.security
-  (:use itedge.service-hub.core.security
-      clojure.test))
+  (:require [itedge.service-hub.core.security :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest test-bcrypt-credential-fn
   (let [cred-fn (fn [username] 

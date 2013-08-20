@@ -1,10 +1,10 @@
 (ns itedge.service-hub.http-ring.test.routes-util
-  (:use itedge.service-hub.core.handlers
-        itedge.service-hub.core.services
-        itedge.service-hub.http-ring.routes-util
-        compojure.core
-        clojure.test)
-  (:require [itedge.service-hub.core.handlers-memory :as handlers-memory]
+  (:require [itedge.service-hub.core.handlers :refer :all]
+            [itedge.service-hub.core.services :refer :all]
+            [itedge.service-hub.http-ring.routes-util :refer :all]
+            [compojure.core :refer :all]
+            [clojure.test :refer :all]
+            [itedge.service-hub.core.handlers-memory :as handlers-memory]
             [itedge.service-hub.core.services-util :as services-util]
             [itedge.service-hub.http-ring.content-util :as content-util]))
 

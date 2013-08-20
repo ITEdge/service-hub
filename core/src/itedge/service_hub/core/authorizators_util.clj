@@ -1,6 +1,6 @@
 (ns itedge.service-hub.core.authorizators-util
-  (:use itedge.service-hub.core.handlers)
-  (:require [clojure.set :as set]
+  (:require [itedge.service-hub.core.handlers :refer :all]
+            [clojure.set :as set]
             [itedge.service-hub.core.util :as util]
             [itedge.service-hub.core.security :as security]))
 
