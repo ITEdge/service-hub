@@ -19,8 +19,8 @@
   (when (exist-entity? db id)
     (touch (entity db id))))
 
-(defn- not-compare [v c-v]
-  (if (coll? v) (not (util/in? v c-v)) (not= v c-v)))
+(defn- not-compare-w [v c-v]
+  (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
 
 (defn- not-in-compare [v c-v]
   (not (util/in? c-v v)))
@@ -28,8 +28,8 @@
 (defn- in-compare [v c-v]
   (util/in? c-v v))
 
-(defn- compare [v c-v]
-  (if (coll? v) (util/in? v c-v) (= v c-v)))
+(defn- compare-w [v c-v]
+  (if (coll? v) (util/in? v c-v) (util/wildcard-compare v c-v)))
 
 (defn- get-function-expression [expression-map item-symbol]
   (let [expression (if (map? expression-map) (first expression-map) (first {:value expression-map}))
@@ -38,14 +38,14 @@
         func-body (-> '()
                     (conj compare-value)
                     (conj item-symbol))]
-	  (expression-key {:not [(conj func-body not-compare)]
-                     :not-in [(conj func-body not-in-compare)]
+	  (expression-key {:not [(conj func-body not-compare-w)]
+                           :not-in [(conj func-body not-in-compare)]
 	                   :in [(conj func-body in-compare)]
 	                   :gt [(conj func-body >)] 
 	                   :lt [(conj func-body <)]
 	                   :gteq [(conj func-body >=)]
 	                   :lteq [(conj func-body <=)]
-	                   :value [(conj func-body compare)]})))
+	                   :value [(conj func-body compare-w)]})))
 
 (defn- add-criteria [query entity-symbol criteria]
   (reduce (fn [acc item]

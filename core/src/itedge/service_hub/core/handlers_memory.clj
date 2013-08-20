@@ -7,22 +7,8 @@
             (let [next-id (swap! index inc)]
               (assoc acc next-id (assoc item id-key next-id)))) {} data))
 
-(defn- wildcard-compare [compare-value wildcard-value]
-  (if (and (= (type wildcard-value) String) (= (type compare-value) String) (>= (.length wildcard-value) 2))
-    (cond
-      (and 
-        (.startsWith wildcard-value "*") 
-	(.endsWith wildcard-value "*")) (let [search-term (.substring wildcard-value 1 (- (.length wildcard-value) 1))]
-                                          (if (= -1 (.indexOf compare-value search-term)) false true))
-	(.startsWith wildcard-value "*") (let [search-term (.substring wildcard-value 1 (.length wildcard-value))]
-                                           (if (= -1 (.indexOf compare-value search-term)) false true))
-	(.endsWith wildcard-value "*") (let [search-term (.substring wildcard-value 0 (- (.length wildcard-value) 1))]
-                                         (if (= -1 (.indexOf compare-value search-term)) false true))
-        :else (= wildcard-value compare-value))
-    (= wildcard-value compare-value)))
-
 (defn- not-compare-w [v c-v]
-  (if (coll? v) (not (util/in? v c-v)) (not (wildcard-compare v c-v))))
+  (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
 
 (defn- not-in-compare [v c-v]
   (not (util/in? c-v v)))
@@ -31,7 +17,7 @@
   (util/in? c-v v))
 
 (defn- compare-w [v c-v]
-  (if (coll? v) (util/in? v c-v) (wildcard-compare v c-v)))
+  (if (coll? v) (util/in? v c-v) (util/wildcard-compare v c-v)))
 
 (defn- compare-fn [v expression-map]
   (let [expression (if (map? expression-map) (first expression-map) (first {:value expression-map}))

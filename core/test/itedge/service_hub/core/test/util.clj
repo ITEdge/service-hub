@@ -6,6 +6,14 @@
   (is (= (in? [1 2 3 4 5] 2) true))
   (is (= (in? [1 2 3 4 5] 7) nil)))
 
+(deftest test-wildcard-compare
+  (is (= (wildcard-compare 1 1) true))
+  (is (= (wildcard-compare 1 0) false))
+  (is (= (wildcard-compare "test" "est") false))
+  (is (= (wildcard-compare "test" "*est") true))
+  (is (= (wildcard-compare "test" "*es*") true))
+  (is (= (wildcard-compare "test" "te*") true)))
+
 (deftest test-update-map-values
   (is (= (update-map-values {:a 1 :b 2} inc) {:a 2 :b 3})))
 

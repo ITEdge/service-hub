@@ -7,6 +7,20 @@
   [seq elm]
   (some #(= elm %) seq))
 
+(defn wildcard-compare [compare-value wildcard-value]
+  (if (and (= (type wildcard-value) String) (= (type compare-value) String) (>= (.length wildcard-value) 2))
+    (cond
+      (and 
+        (.startsWith wildcard-value "*") 
+	(.endsWith wildcard-value "*")) (let [search-term (.substring wildcard-value 1 (- (.length wildcard-value) 1))]
+                                          (if (= -1 (.indexOf compare-value search-term)) false true))
+	(.startsWith wildcard-value "*") (let [search-term (.substring wildcard-value 1 (.length wildcard-value))]
+                                           (if (= -1 (.indexOf compare-value search-term)) false true))
+	(.endsWith wildcard-value "*") (let [search-term (.substring wildcard-value 0 (- (.length wildcard-value) 1))]
+                                         (if (= -1 (.indexOf compare-value search-term)) false true))
+        :else (= wildcard-value compare-value))
+    (= wildcard-value compare-value)))
+
 (defn update-map-values
   "Updates map values with provided fn"
   [m f]
