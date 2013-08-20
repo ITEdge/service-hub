@@ -17,7 +17,7 @@
   PEntityService
   (find-entity [_ id auth]
     (services-util/get-service-result
-	    (services-util/get-success-response
+      (services-util/get-success-response
         (handle-find-entity test-handler id))))
   (delete-entity [_ id auth]
     (services-util/get-service-result
@@ -33,8 +33,8 @@
         (handle-add-entity test-handler attributes))))
   (list-entities [_ criteria sort-attrs from to auth]
     (services-util/get-service-result
-	    (-> (services-util/get-success-response 
-            (handle-list-entities test-handler criteria sort-attrs from to))
+      (-> (services-util/get-success-response 
+        (handle-list-entities test-handler criteria sort-attrs from to))
         (services-util/assoc-range-info from to (handle-count-entities test-handler criteria))))))
 
 (def test-service (->TestService test-handler))

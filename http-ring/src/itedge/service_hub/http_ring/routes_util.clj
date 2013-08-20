@@ -25,7 +25,6 @@
 (defn- parse-sort-args
   "Parses sort parameters from request in form 'sortParam=+param1,-param2' and
    transforms them into arguments vector of form for example [[:param1 :ASC] [:param2 :DESC]]"
-  {:added "EBS 1.0"}
   [sort-key params]
   (when-let [params (sort-key params)]
     (into [] 
@@ -35,7 +34,6 @@
 (defn- parse-range-headers
   "Parses range headers, returns map with keys :from and :to, for example {:from 0 :to 24}, if no range headers
    are present, returns nil"
-  {:added "EBS 1.0"}
   [{headers :headers }]
   (when-let [range-headers (get headers "range")]
     (let [chunks (string/split (last (string/split range-headers #"=")) #"-")]
@@ -43,7 +41,6 @@
 
 (defn- create-content-range-headers
   "If all arguments are present, creates content range header and adds it to the response"
-  {:added "EBS 1.0"}
   [response {:keys [from to total]}]
   (if (and from to total)
     (assoc-in response [:headers "Content-Range"] (str "items " from "-" to "/" total))
@@ -54,10 +51,9 @@
                         :not-authenticated 403 :not-authorized 403 :not-found 404 :conflict 409 :gone 410 :bad-range 416 
                         :error 500}]
   (defn create-status-code
-	  "Translate status from service result to valid http status code"
-	  {:added "EBS 1.0"}
-		  [response {return-code :return-code}]
-		  (assoc response :status (return-code results-to-codes))))
+    "Translate status from service result to valid http status code"
+    [response {return-code :return-code}]
+      (assoc response :status (return-code results-to-codes))))
 
 (defn scaffold-crud-routes
   "Creates standard REST routes for all CRUD operations, taking root path, entity service
@@ -72,7 +68,6 @@
    Map with post functions for each path (:list :get :query :update :create :delete) can be 
    optionally passed in as fourth argument, corresponding functions will be then called with
    result of entity service call"
-  {:added "EBS 1.0"}
   ([path entity-service pk content-read content-write]
     (scaffold-crud-routes path entity-service pk content-read content-write nil))
   ([path entity-service pk content-read content-write post-fns]
@@ -81,17 +76,17 @@
                      sort-args (parse-sort-args :sortBy (:params request))
                      auth (:auth request)
                      result (list-entities entity-service nil sort-args (:from range) (:to range) auth)]
-	               (-> (content-write 
+	         (-> (content-write 
                    (-> (:message result)
-	                     ((:list post-fns identity))))
+	             ((:list post-fns identity))))
                    (create-status-code result)
                    (create-content-range-headers result))))
            (GET [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [auth (:auth request)
                      result (find-entity entity-service (util/parse-number id) auth)]
-	               (-> (content-write 
+	         (-> (content-write 
                    (-> (:message result)
-                       ((:get post-fns identity))))
+                     ((:get post-fns identity))))
                    (create-status-code result))))
            (GET path [:as request]
                (let [range (parse-range-headers request)
@@ -101,31 +96,31 @@
                      result (list-entities entity-service params sort-args (:from range) (:to range) auth)]
                  (-> (content-write
                    (-> (:message result)
-                       ((:query post-fns identity))))
+                     ((:query post-fns identity))))
                    (create-status-code result)
                    (create-content-range-headers result))))
            (PUT [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [attributes (assoc (content-read (body-string request)) pk (util/parse-number id))
                      auth (:auth request)
                      result (update-entity entity-service attributes auth)]
-	               (-> (content-write
+	         (-> (content-write
                    (-> (:message result)
-                       ((:update post-fns identity))))
+                     ((:update post-fns identity))))
                    (create-status-code result))))
            (POST path [:as request]
                (let [attributes (content-read (body-string request))
                      auth (:auth request)
                      result (add-entity entity-service attributes auth)] 
-	               (-> (content-write
+	         (-> (content-write
                    (-> (:message result)
-                       ((:create post-fns identity))))
+                     ((:create post-fns identity))))
                    (create-status-code result))))
            (DELETE [(str path "/:id"), :id #"[0-9]+"] [id :as request]
                (let [auth (:auth request)
-                     result (delete-entity entity-service (util/parse-number id) auth)]   
-	               (-> (content-write
+                     result (delete-entity entity-service (util/parse-number id) auth)]
+	         (-> (content-write
                    (-> (:message result)
-                       ((:delete post-fns identity))))
+                     ((:delete post-fns identity))))
                    (create-status-code result)))))))
 
 (defn deny-request 
@@ -135,7 +130,7 @@
     (assoc :status 401)))
 
 (defn check-auth
-  "Checks authentication info, if it's map, authentication is valid and authentication map is returned as response, 
+  "Checks authentication info, if it's map, authentication is valid and authentication map is returned as response,
    deny otherwise"
   {:added "EBS 1.0"}
   [{auth :auth} content-write]
