@@ -57,11 +57,19 @@
     (is (= (get-entity (db conn) -1) nil))))
 
 (deftest test-count-entities
-  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} nil) 3)))
+  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} nil) 3))
+  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item 1"}) 1))
+  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item*"}) 3)))
 
 (deftest test-list-entities
-  (is (= (list-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item 2"} nil nil nil) 
-         [{:item/name "item 1" :item/count 7 :item/price 20.3}])))
+  (let [q-result-1 (list-entities (db conn) #{:item/name :item/count :item/price} nil nil nil nil)
+        q-result-2 (list-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item*"} [[:item/name :ASC]] 0 2)
+        q-result-2-ent-1 (first q-result-2)]
+    (is (= (count q-result-1) 3))
+    (is (= (count q-result-2) 2))
+    (is (= (:item/name q-result-2-ent-1) "item 1"))
+    (is (= (:item/count q-result-2-ent-1) 7))
+    (is (= (:item/price q-result-2-ent-1) 20.3))))
 
 (shutdown false)
 

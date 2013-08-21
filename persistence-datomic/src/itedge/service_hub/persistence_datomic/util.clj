@@ -1,5 +1,5 @@
 (ns itedge.service-hub.persistence-datomic.util
-  (:require [datomic.api :as d :refer [q entity touch transact]]
+  (:require [datomic.api :as d :refer [q entity transact]]
             [clojure.set :as set]
             [itedge.service-hub.core.util :as util]))
 
@@ -17,7 +17,7 @@
   "Get entity with specified id, if no such entity exist, returns nil"
   [db id]
   (when (exist-entity? db id)
-    (touch (entity db id))))
+    (entity db id)))
 
 (defn- not-compare-w [v c-v]
   (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
@@ -45,7 +45,7 @@
 	                   :lt [(conj func-body <)]
 	                   :gteq [(conj func-body >=)]
 	                   :lteq [(conj func-body <=)]
-	                   :value [(conj func-body compare-w)]})))
+	                   :value [(conj func-body compare-w)]}))) 
 
 (defn- add-criteria [query entity-symbol criteria]
   (reduce (fn [acc item]
@@ -65,17 +65,25 @@
   [db fieldset criteria]
   (let [query (-> '[:find (count ?e) :where]
                 (add-fieldset '?e (unrestricted-fields fieldset criteria))
-                (add-criteria '? criteria))]
+                (add-criteria '?e criteria))]
     (extract-single (q query db))))
+
+(defn- list-entities-q
+  [fieldset criteria]
+  (-> '[:find ?e :where]
+      (add-fieldset '?e (unrestricted-fields fieldset criteria))
+      (add-criteria '?e criteria)))
+
+(defn list-entities-p
+  "Process list entities query in specified db, sorts and paginates the result"
+  [db query sort-attrs from to]
+  (let [entity-ids (q query db)
+        unsorted-entities (map (fn [r] (entity db (first r))) (sort entity-ids))]
+    (if (seq sort-attrs)
+      (util/get-ranged-vector (util/sort-maps unsorted-entities sort-attrs) from to)
+      (util/get-ranged-vector unsorted-entities from to))))
 
 (defn list-entities
   "List entities with given fieldset, criteria, sorting and paging in specified db"
   [db fieldset criteria sort-attrs from to]
-  (let [entity-symbol '?e
-        query (-> [:find entity-symbol :where]
-                (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
-                (add-criteria entity-symbol criteria))
-        entity-ids (q query db)]
-    (map (fn [r] (touch (entity db (first r)))) entity-ids)))
-
-
+  (list-entities-p db (list-entities-q fieldset criteria) sort-attrs from to))

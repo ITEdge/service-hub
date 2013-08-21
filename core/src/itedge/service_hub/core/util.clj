@@ -21,6 +21,19 @@
         :else (= wildcard-value compare-value))
     (= wildcard-value compare-value)))
 
+(defn get-ranged-vector
+  "Constructs vector from collection, ranged if from and to arguments are not nil"
+  [coll from to]
+  (let [from (if from from 0)
+        to (if to to (count coll))]
+    (reduce (fn [acc item] (conj acc (nth coll item))) [] (range from to))))
+
+(defn sort-maps
+  "sort collection of maps according to given sort-attrs, which should have form [[:a :ASC] [:b :DESC] ...]"
+  [maps sort-attrs]
+  (let [sort-fn (reduce (fn [acc item] (juxt acc (first item))) (first (first sort-attrs)) (rest sort-attrs))]
+    (sort-by sort-fn maps)))
+
 (defn update-map-values
   "Updates map values with provided fn"
   [m f]

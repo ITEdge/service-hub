@@ -14,6 +14,16 @@
   (is (= (wildcard-compare "test" "*es*") true))
   (is (= (wildcard-compare "test" "te*") true)))
 
+(deftest test-get-ranged-vector
+  (is (= (get-ranged-vector '(0 1 2 3 4 5) nil nil) [0 1 2 3 4 5]))
+  (is (= (get-ranged-vector '(0 1 2 3 4 5) 2 nil) [2 3 4 5]))
+  (is (= (get-ranged-vector '(0 1 2 3 4 5) nil 2) [0 1]))
+  (is (= (get-ranged-vector '(0 1 2 3 4 5) 2 5) [2 3 4])))
+
+(deftest test-sort-maps
+  (is (= (sort-maps '({:a 1 :b 2} {:a 7 :b 5} {:a 3 :b 2} {:a 7 :b 4}) [[:a :ASC] [:b :ASC]]) 
+         [{:a 1 :b 2} {:a 3 :b 2} {:a 7 :b 4} {:a 7 :b 5}])))
+
 (deftest test-update-map-values
   (is (= (update-map-values {:a 1 :b 2} inc) {:a 2 :b 3})))
 
