@@ -1,10 +1,15 @@
 (ns itedge.service-hub.persistence-datomic.util
-  (:require [datomic.api :as d :refer [q entity transact]]
+  (:require [datomic.api :as d :refer [q db entity transact resolve-tempid]]
             [clojure.set :as set]
             [itedge.service-hub.core.util :as util]))
 
 (defn- extract-single [result]
   (first (first result)))
+
+(defn- convert-entity-to-map
+  [e]
+  (let [m (reduce (fn [acc [k v]] (assoc acc k v)) {} e)]
+    (assoc m :db/id (:db/id e))))
 
 (defn exist-entity? 
   "Determines if entity with given id exist in database"
@@ -17,7 +22,7 @@
   "Get entity with specified id, if no such entity exist, returns nil"
   [db id]
   (when (exist-entity? db id)
-    (entity db id)))
+    (convert-entity-to-map (entity db id))))
 
 (defn- not-compare-w [v c-v]
   (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
@@ -60,6 +65,20 @@
 (defn- unrestricted-fields [fieldset criteria]
   (set/difference fieldset (set (keys criteria))))
 
+(defn add-entity
+  "Adds entity with given attributes in the specified connection"
+  [conn attributes]
+  (let [tx-attributes (assoc attributes :db/id -1)
+        tx-result @(transact conn [tx-attributes])
+        final-id (resolve-tempid (db conn) (:tempids tx-result) -1)]
+    (convert-entity-to-map (entity (:db-after tx-result) final-id))))
+
+(defn update-entity
+  "Updates entity with given attributes in the specified connection"
+  [conn attributes]
+  (when-let [id (:db/id attributes)]
+    (convert-entity-to-map (entity (:db-after @(transact conn [attributes])) id))))
+
 (defn count-entities
   "Count entities with given fieldset in specified db"
   [db fieldset criteria]
@@ -78,7 +97,8 @@
   "Process list entities query in specified db, sorts and paginates the result"
   [db query sort-attrs from to]
   (let [entity-ids (q query db)
-        unsorted-entities (map (fn [r] (entity db (first r))) (sort entity-ids))]
+        unsorted-entities (map (fn [r] (convert-entity-to-map (entity db (first r)))) 
+                               (sort entity-ids))]
     (if (seq sort-attrs)
       (util/get-ranged-vector (util/sort-maps unsorted-entities sort-attrs) from to)
       (util/get-ranged-vector unsorted-entities from to))))
