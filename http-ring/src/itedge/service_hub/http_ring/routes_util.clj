@@ -1,26 +1,9 @@
 (ns itedge.service-hub.http-ring.routes-util
   (:require [itedge.service-hub.core.services :refer :all]
+            [ring.util.request :as request-util]
             [compojure.core :refer :all]
             [clojure.string :as string]
             [itedge.service-hub.core.util :as util]))
-
-(defmulti body-string
-  "Return the request body as a string."
-  (comp class :body))
-
-(defmethod body-string nil [_] nil)
-
-(defmethod body-string String [request]
-  (:body request))
-
-(defmethod body-string clojure.lang.ISeq [request]
-  (apply str (:body request)))
-
-(defmethod body-string java.io.File [request]
-  (slurp (:body request)))
-
-(defmethod body-string java.io.InputStream [request]
-  (slurp (:body request)))
 
 (defn- parse-sort-args
   "Parses sort parameters from request in form 'sortParam=+param1,-param2' and
@@ -55,6 +38,81 @@
     [response {return-code :return-code}]
       (assoc response :status (return-code results-to-codes))))
 
+(defn list-route
+  "Returns route for list calls - 'GET path/' (uses sorting parameters from request if present)"
+  [path list-fn post-processing-fn content-write]
+  (GET (str path "/") [:as request]
+       (let [range (parse-range-headers request)
+             sort-args (parse-sort-args :sortBy (:params request))
+             auth (:auth request)
+             result (list-fn nil sort-args (:from range) (:to range) auth)]
+         (-> (content-write 
+           (-> (:message result)
+             (post-processing-fn)))
+             (create-status-code result)
+             (create-content-range-headers result)))))
+
+(defn get-route
+  "Returns route for get calls - 'GET path/:id'"
+  [path get-fn post-processing-fn content-write]
+  (GET [(str path "/:id"), :id #"[0-9]+"] [id :as request]
+       (let [auth (:auth request)
+             result (get-fn (util/parse-number id) auth)]
+         (-> (content-write 
+           (-> (:message result)
+             (post-processing-fn)))
+             (create-status-code result)))))
+
+(defn query-route
+  "Returns route for query calls - 'GET path' (uses querying and sorting parameters from request if present)"
+  [path query-fn post-processing-fn content-write]
+  (GET path [:as request]
+       (let [range (parse-range-headers request)
+             params (:params request)
+             sort-args (parse-sort-args :sortBy params)
+             auth (:auth request)
+             result (query-fn params sort-args (:from range) (:to range) auth)]
+         (-> (content-write
+           (-> (:message result)
+             (post-processing-fn)))
+           (create-status-code result)
+           (create-content-range-headers result)))))
+
+(defn update-route
+  "Returns route for update calls - 'PUT path/:id'"
+  [path update-fn post-processing-fn pk content-read content-write]
+  (PUT [(str path "/:id"), :id #"[0-9]+"] [id :as request]
+       (let [attributes (assoc (content-read (request-util/body-string request)) pk (util/parse-number id))
+             auth (:auth request)
+             result (update-fn attributes auth)]
+         (-> (content-write
+           (-> (:message result)
+             (post-processing-fn)))
+           (create-status-code result)))))
+
+(defn create-route
+  "Returns route for create calls - 'POST path/'"
+  [path create-fn post-processing-fn content-read content-write]
+  (POST path [:as request]
+        (let [attributes (content-read (request-util/body-string request))
+              auth (:auth request)
+              result (create-fn attributes auth)] 
+	  (-> (content-write
+            (-> (:message result)
+              (post-processing-fn)))
+            (create-status-code result)))))
+
+(defn delete-route
+  "Returns route for delete calls - 'DELETE path/:id'"
+  [path delete-fn post-processing-fn content-write]
+  (DELETE [(str path "/:id"), :id #"[0-9]+"] [id :as request]
+          (let [auth (:auth request)
+                result (delete-fn (util/parse-number id) auth)]
+	    (-> (content-write
+              (-> (:message result)
+                (post-processing-fn)))
+              (create-status-code result)))))
+
 (defn scaffold-crud-routes
   "Creates standard REST routes for all CRUD operations, taking root path, entity service
    content-read, content-write functions and entity primary key as attributes. 
@@ -67,61 +125,17 @@
    6. Delete - 'DELETE path/:id'
    Map with post functions for each path (:list :get :query :update :create :delete) can be 
    optionally passed in as fourth argument, corresponding functions will be then called with
-   result of entity service call"
+   result of the entity service call"
   ([path entity-service pk content-read content-write]
     (scaffold-crud-routes path entity-service pk content-read content-write nil))
   ([path entity-service pk content-read content-write post-fns]
-   (routes (GET (str path "/") [:as request]
-               (let [range (parse-range-headers request)
-                     sort-args (parse-sort-args :sortBy (:params request))
-                     auth (:auth request)
-                     result (list-entities entity-service nil sort-args (:from range) (:to range) auth)]
-	         (-> (content-write 
-                   (-> (:message result)
-	             ((:list post-fns identity))))
-                   (create-status-code result)
-                   (create-content-range-headers result))))
-           (GET [(str path "/:id"), :id #"[0-9]+"] [id :as request]
-               (let [auth (:auth request)
-                     result (find-entity entity-service (util/parse-number id) auth)]
-	         (-> (content-write 
-                   (-> (:message result)
-                     ((:get post-fns identity))))
-                   (create-status-code result))))
-           (GET path [:as request]
-               (let [range (parse-range-headers request)
-                     params (:params request)
-                     sort-args (parse-sort-args :sortBy params)
-                     auth (:auth request)
-                     result (list-entities entity-service params sort-args (:from range) (:to range) auth)]
-                 (-> (content-write
-                   (-> (:message result)
-                     ((:query post-fns identity))))
-                   (create-status-code result)
-                   (create-content-range-headers result))))
-           (PUT [(str path "/:id"), :id #"[0-9]+"] [id :as request]
-               (let [attributes (assoc (content-read (body-string request)) pk (util/parse-number id))
-                     auth (:auth request)
-                     result (update-entity entity-service attributes auth)]
-	         (-> (content-write
-                   (-> (:message result)
-                     ((:update post-fns identity))))
-                   (create-status-code result))))
-           (POST path [:as request]
-               (let [attributes (content-read (body-string request))
-                     auth (:auth request)
-                     result (add-entity entity-service attributes auth)] 
-	         (-> (content-write
-                   (-> (:message result)
-                     ((:create post-fns identity))))
-                   (create-status-code result))))
-           (DELETE [(str path "/:id"), :id #"[0-9]+"] [id :as request]
-               (let [auth (:auth request)
-                     result (delete-entity entity-service (util/parse-number id) auth)]
-	         (-> (content-write
-                   (-> (:message result)
-                     ((:delete post-fns identity))))
-                   (create-status-code result)))))))
+    (routes 
+      (list-route path (partial list-entities entity-service) (:list post-fns identity) content-write)
+      (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write)
+      (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
+      (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write)     
+      (create-route path (partial add-entity entity-service) (:create post-fns identity) content-read content-write)
+      (delete-route path (partial delete-entity entity-service) (:delete post-fns identity) content-write))))
 
 (defn deny-request 
   "Deny request with specified reason"

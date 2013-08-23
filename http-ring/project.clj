@@ -7,7 +7,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/data.json "0.2.0"]
                  [itedge/service-hub.core "1.1.0"]
-                 [ring "1.1.8"]
+                 [ring "1.2.0"]
                  [compojure "1.1.3"]
                  ;java dependencies
                  [commons-codec "1.6"]])
