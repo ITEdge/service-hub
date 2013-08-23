@@ -66,7 +66,10 @@
           (swap! entity-map assoc next-id attributes)
           attributes))
       (handle-list-entities [_ criteria sort-attrs from to]
-	(into [] (map second (filter (filter-fn criteria) @entity-map)))) ; sorting and paging not implemented
+        (let [extract-fn (fn [e-map crit] (map second (filter (filter-fn crit) @e-map)))]
+          (if (seq sort-attrs)
+            (util/get-ranged-vector (util/sort-maps (extract-fn entity-map criteria) sort-attrs) from to)
+            (util/get-ranged-vector (sort-by id-key (extract-fn entity-map criteria)) from to))))
       (handle-count-entities [_ criteria]
         (count (filter (filter-fn criteria) @entity-map)))
       (handle-get-unique-identifier [_]
