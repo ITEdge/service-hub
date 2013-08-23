@@ -11,17 +11,22 @@
   (let [m (reduce (fn [acc [k v]] (assoc acc k v)) {} e)]
     (assoc m :db/id (:db/id e))))
 
+(defn- add-fieldset [query entity-symbol fieldset]
+  (reduce (fn [acc item] (conj query [entity-symbol item])) query fieldset))
+
 (defn exist-entity? 
-  "Determines if entity with given id exist in database"
-  [db id]
-  (if-let [e (extract-single (q '[:find ?eid :in $ ?eid :where [?eid]] db id))]
-    true
-    false))
+  "Determines if entity with given fieldset and id exist in database"
+  [db fieldset id]
+  (let [query (-> '[:find ?eid :in $ ?eid :where [?eid]]
+                (add-fieldset '?eid fieldset))] 
+    (if-let [e (extract-single (q query db id))]
+      true
+      false)))
 
 (defn get-entity
-  "Get entity with specified id, if no such entity exist, returns nil"
-  [db id]
-  (when (exist-entity? db id)
+  "Get entity with specified fieldset and id, if no such entity exist, returns nil"
+  [db fieldset id]
+  (when (exist-entity? db fieldset id)
     (convert-entity-to-map (entity db id))))
 
 (defn- not-compare-w [v c-v]
@@ -59,9 +64,6 @@
                 (conj [entity-symbol (key item) item-symbol]) 
                 (conj (get-function-expression (val item) item-symbol))))) query criteria))
 
-(defn- add-fieldset [query entity-symbol fieldset]
-  (reduce (fn [acc item] (conj query [entity-symbol item])) query fieldset))
-
 (defn- unrestricted-fields [fieldset criteria]
   (set/difference fieldset (set (keys criteria))))
 
@@ -78,6 +80,12 @@
   [conn attributes]
   (when-let [id (:db/id attributes)]
     (convert-entity-to-map (entity (:db-after @(transact conn [attributes])) id))))
+
+(defn delete-entity
+  "Strips entity with given fieldset and id of all attributes"
+  [conn fieldset id]
+  (when (exist-entity? (db conn) fieldset id)
+    (convert-entity-to-map (entity (:db-after @(transact conn [[:db.fn/retractEntity id]])) id))))
 
 (defn count-entities
   "Count entities with given fieldset in specified db"

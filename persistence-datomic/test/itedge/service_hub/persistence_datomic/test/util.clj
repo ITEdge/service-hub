@@ -45,38 +45,46 @@
 ])
 @(d/transact conn data-tx)
 
+(def item-fieldset #{:item/name :item/count :item/price})
+
 (deftest test-add-entity
   (let [e (add-entity conn {:item/name "item 4" :item/count 5 :item/price 12.2})
         e-id (:db/id e)]
     (is (= e {:db/id e-id :item/name "item 4" :item/count 5 :item/price 12.2}))))
 
 (deftest test-update-entity
-  (let [e (first (list-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item 4"} nil nil nil))
+  (let [e (first (list-entities (db conn) item-fieldset {:item/name "item 4"} nil nil nil))
         e-id (:db/id e)
         updated-entity (update-entity conn {:db/id e-id :item/price 13.2})]
     (is (= updated-entity {:db/id e-id :item/name "item 4" :item/count 5 :item/price 13.2}))))
 
+(deftest test-delete-entity
+  (let [e (first (list-entities (db conn) item-fieldset {:item/name "item 2"} nil nil nil))
+        e-id (:db/id e)
+        ret-e (delete-entity conn item-fieldset e-id)]
+    (is (= ret-e {:db/id e-id}))))
+
 (deftest test-exist-entity?
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 1"]] (db conn))))]
-    (is (= (exist-entity? (db conn) id) true))
-    (is (= (exist-entity? (db conn) -1) false))))
+    (is (= (exist-entity? (db conn) item-fieldset id) true))
+    (is (= (exist-entity? (db conn) item-fieldset -1) false))))
 
 (deftest test-get-entity
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 1"]] (db conn))))]
-    (is (= (:item/name (get-entity (db conn) id)) "item 1"))
-    (is (= (:db/id (get-entity (db conn) id)) id))
-    (is (= (get-entity (db conn) -1) nil))))
+    (is (= (:item/name (get-entity (db conn) item-fieldset id)) "item 1"))
+    (is (= (:db/id (get-entity (db conn) item-fieldset id)) id))
+    (is (= (get-entity (db conn) item-fieldset -1) nil))))
 
 (deftest test-count-entities
-  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} nil) 4))
-  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item 4"}) 1))
-  (is (= (count-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item*"}) 4)))
+  (is (= (count-entities (db conn) item-fieldset nil) 3))
+  (is (= (count-entities (db conn) item-fieldset {:item/name "item 4"}) 1))
+  (is (= (count-entities (db conn) item-fieldset {:item/name "item*"}) 3)))
 
 (deftest test-list-entities
-  (let [q-result-1 (list-entities (db conn) #{:item/name :item/count :item/price} nil nil nil nil)
-        q-result-2 (list-entities (db conn) #{:item/name :item/count :item/price} {:item/name "item*"} [[:item/name :ASC]] 0 2)
+  (let [q-result-1 (list-entities (db conn) item-fieldset nil nil nil nil)
+        q-result-2 (list-entities (db conn) item-fieldset {:item/name "item*"} [[:item/name :ASC]] 0 2)
         q-result-2-ent-1 (dissoc (first q-result-2) :db/id)]
-    (is (= (count q-result-1) 4))
+    (is (= (count q-result-1) 3))
     (is (= (count q-result-2) 2))
     (is (= q-result-2-ent-1 {:item/name "item 1" :item/count 7 :item/price 20.3}))))
 
