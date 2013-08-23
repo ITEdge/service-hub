@@ -61,8 +61,8 @@
 (deftest test-delete-entity
   (let [e (first (list-entities (db conn) item-fieldset {:item/name "item 2"} nil nil nil))
         e-id (:db/id e)
-        ret-e (delete-entity conn item-fieldset e-id)]
-    (is (= ret-e {:db/id e-id}))))
+        ret-id (delete-entity conn item-fieldset e-id)]
+    (is (= ret-id e-id))))
 
 (deftest test-exist-entity?
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 1"]] (db conn))))]

@@ -85,7 +85,7 @@
   "Strips entity with given fieldset and id of all attributes"
   [conn fieldset id]
   (when (exist-entity? (db conn) fieldset id)
-    (convert-entity-to-map (entity (:db-after @(transact conn [[:db.fn/retractEntity id]])) id))))
+    (:db/id (entity (:db-after @(transact conn [[:db.fn/retractEntity id]])) id))))
 
 (defn count-entities
   "Count entities with given fieldset in specified db"
