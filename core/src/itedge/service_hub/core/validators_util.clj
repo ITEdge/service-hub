@@ -22,7 +22,7 @@
     (when (some empty-val? mandatory-map)
       (util/get-service-result :conflict "one or more mandatory fields have null values"))))
 
-(defn- relations-not-exists
+(defn- relations-not-exist
   "Determines if given relations exist"
   [relations entity-handler]
   (some 
@@ -34,14 +34,14 @@
   "Validate relation for insertion or update of given entity"
   [attributes entity-key entity-handler]
   (when-let [related-value (entity-key attributes)]
-    (when (relations-not-exists related-value entity-handler)
+    (when (relations-not-exist related-value entity-handler)
       (util/get-service-result :conflict "mandatory related entity with given primary key does not exists"))))
 
 (defn validate-mandatory-insert-relations
   "Validate mandatory relation for insertion of given entity"
   [attributes entity-key entity-handler]
   (if-let [related-value (entity-key attributes)]
-    (when (relations-not-exists related-value entity-handler)
+    (when (relations-not-exist related-value entity-handler)
       (util/get-service-result :conflict "mandatory related entity with given primary key does not exists"))
     (util/get-service-result :conflict "mandatory related entity not present")))
 
