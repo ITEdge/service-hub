@@ -4,12 +4,12 @@ Service-Hub is an opinionated framework for development of service-centered appl
 
 ## Releases and Dependancy Information
 
-Latest stable release is 1.0.3
+Latest stable release is 1.2.0
 
 Leiningen dependency information:
 
 ```clojure
-[service-hub "1.0.3"]
+[service-hub "1.2.0"]
 ```
 
 ## Example
@@ -22,7 +22,7 @@ See [wiki](https://github.com/ITEdge/ServiceHub/wiki)
 
 ## Future work
 
-* Support for persistence-datomic
+* Support for pedestal http stack
 
 ## Contributors
 
