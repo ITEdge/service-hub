@@ -39,13 +39,16 @@
       (assoc response :status (return-code results-to-codes))))
 
 (defn list-route
-  "Returns route for list calls - 'GET path/' (uses sorting parameters from request if present)"
+  "Returns route for list calls - 'GET path/' (uses sorting parameters from request if present).
+   Takes the root path, listing function, one argument post-processiong function and one 
+   argument content-write function as arguments. Listing function takes four optional arguments,
+   sorting vector, lower range bound, upper range bound and authentication map."
   [path list-fn post-processing-fn content-write]
   (GET (str path "/") [:as request]
        (let [range (parse-range-headers request)
              sort-args (parse-sort-args :sortBy (:params request))
              auth (:auth request)
-             result (list-fn nil sort-args (:from range) (:to range) auth)]
+             result (list-fn sort-args (:from range) (:to range) auth)]
          (-> (content-write 
            (-> (:message result)
              (post-processing-fn)))
@@ -53,7 +56,9 @@
              (create-content-range-headers result)))))
 
 (defn get-route
-  "Returns route for get calls - 'GET path/:id'"
+  "Returns route for get calls - 'GET path/:id'. Takes the root path, get function, 
+   one argument post-processiong function and one argument content-write function as arguments. 
+   Get function takes two arguments, entity id and optional authentication map."
   [path get-fn post-processing-fn content-write]
   (GET [(str path "/:id"), :id #"[0-9]+"] [id :as request]
        (let [auth (:auth request)
@@ -64,7 +69,10 @@
              (create-status-code result)))))
 
 (defn query-route
-  "Returns route for query calls - 'GET path' (uses querying and sorting parameters from request if present)"
+  "Returns route for query calls - 'GET path' (uses querying and sorting parameters from request if present).
+   Takes the root path, querying function, one argument post-processiong function and one 
+   argument content-write function as arguments. Querying function takes five optional arguments,
+   criteria query map, sorting vector, lower range bound, upper range bound and authentication map."
   [path query-fn post-processing-fn content-write]
   (GET path [:as request]
        (let [range (parse-range-headers request)
@@ -79,7 +87,10 @@
            (create-content-range-headers result)))))
 
 (defn update-route
-  "Returns route for update calls - 'PUT path/:id'"
+  "Returns route for update calls - 'PUT path/:id'. Takes the root path, update function, 
+   one argument post-processiong function, entity primary key, one argument content-read function and
+   one argument content-write function as arguments. Update function takes two arguments, entity attributes
+   and optional authentication map."
   [path update-fn post-processing-fn pk content-read content-write]
   (PUT [(str path "/:id"), :id #"[0-9]+"] [id :as request]
        (let [attributes (assoc (content-read (request-util/body-string request)) pk (util/parse-number id))
@@ -91,7 +102,9 @@
            (create-status-code result)))))
 
 (defn create-route
-  "Returns route for create calls - 'POST path/'"
+  "Returns route for create calls - 'POST path/'. Takes the root path, create function, one argument 
+   post-processiong function, one argument content-read function and one argument content-write function as 
+   arguments. Create function takes two arguments, entity attributes and optional authentication map."
   [path create-fn post-processing-fn content-read content-write]
   (POST path [:as request]
         (let [attributes (content-read (request-util/body-string request))
@@ -103,7 +116,9 @@
             (create-status-code result)))))
 
 (defn delete-route
-  "Returns route for delete calls - 'DELETE path/:id'"
+  "Returns route for delete calls - 'DELETE path/:id'. Takes the root path, delete function, one argument 
+   post-processiong function and one argument content-write function as arguments. Delete function takes 
+   two arguments, entity id and optional authentication map."
   [path delete-fn post-processing-fn content-write]
   (DELETE [(str path "/:id"), :id #"[0-9]+"] [id :as request]
           (let [auth (:auth request)
@@ -130,7 +145,7 @@
     (scaffold-crud-routes path entity-service pk content-read content-write nil))
   ([path entity-service pk content-read content-write post-fns]
     (routes 
-      (list-route path (partial list-entities entity-service) (:list post-fns identity) content-write)
+      (list-route path (partial list-entities entity-service nil) (:list post-fns identity) content-write)
       (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write)
       (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
       (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write)     
