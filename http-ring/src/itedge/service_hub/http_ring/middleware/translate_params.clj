@@ -13,7 +13,7 @@
     :else
       (let [v (get {"null" nil "true" true "false" false} target target)]
         (if (and (string? v) (= \[ (first v)) (= \] (last v)))
-          (into [] (map util/parse-number (string/split (.replaceAll v "\\[|\\]" "") #",")))
+          (mapv util/parse-number (string/split (.replaceAll v "\\[|\\]" "") #","))
           v))))
 
 (defn wrap-translate-params
