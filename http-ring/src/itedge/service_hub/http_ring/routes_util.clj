@@ -9,10 +9,9 @@
   "Parses sort parameters from request in form 'sortParam=+param1,-param2' and
    transforms them into arguments vector of form for example [[:param1 :ASC] [:param2 :DESC]]"
   [sort-key params]
-  (when-let [params (sort-key params)]
-    (into [] 
-      (map #(vector (keyword (.replaceAll % "\\s|\\+|-" "")) ({\space :ASC \+ :ASC \- :DESC} (first %))) 
-           (string/split params #",")))))
+  (when-let [params (sort-key params)] 
+    (mapv #(vector (keyword (.replaceAll % "\\s|\\+|-" "")) ({\space :ASC \+ :ASC \- :DESC} (first %))) 
+          (string/split params #","))))
 
 (defn- parse-range-headers
   "Parses range headers, returns map with keys :from and :to, for example {:from 0 :to 24}, if no range headers
