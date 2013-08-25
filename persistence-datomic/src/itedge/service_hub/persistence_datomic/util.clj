@@ -1,6 +1,7 @@
 (ns itedge.service-hub.persistence-datomic.util
   (:require [datomic.api :as d :refer [q db entity transact resolve-tempid]]
             [clojure.set :as set]
+            [itedge.service-hub.core.handlers :refer :all]
             [itedge.service-hub.core.util :as util]))
 
 (defn- extract-single [result]
@@ -115,3 +116,22 @@
   "List entities with given fieldset, criteria, sorting and paging in specified db"
   [db fieldset criteria sort-attrs from to]
   (list-entities-p db (list-entities-q fieldset criteria) sort-attrs from to))
+
+(defn create-datomic-handler [conn fieldset]
+  (reify PEntityHandler
+    (handle-find-entity [_ id]
+      (get-entity (db conn) fieldset id))
+    (handle-exist-entity [_ id]
+      (exist-entity? (db conn) fieldset id))
+    (handle-delete-entity [_ id]
+      (delete-entity conn fieldset id))
+    (handle-update-entity [_ attributes]
+      (update-entity conn attributes))
+    (handle-add-entity [_ attributes]
+      (add-entity conn attributes))
+    (handle-list-entities [_ criteria sort-attrs from to]
+      (list-entities (db conn) fieldset criteria sort-attrs from to))
+    (handle-count-entities [_ criteria]
+      (count-entities (db conn) fieldset criteria))
+    (handle-get-unique-identifier [_]
+      :db/id)))
