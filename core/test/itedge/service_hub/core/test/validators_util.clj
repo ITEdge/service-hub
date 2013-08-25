@@ -27,6 +27,12 @@
          (util/get-service-result :conflict "one or more mandatory fields have null values")))
   (is (= (validate-update-fields {:a 1} #{:a :b}) nil)))
 
+(deftest test-validate-allowed-fields
+  (is (= (validate-allowed-fields {:a 1 :b 2} #{:a :b :c}) nil))
+  (is (= (validate-allowed-fields {:a 1 :b 2 :c 3} #{:a :b :c}) nil))
+  (is (= (validate-allowed-fields {:a 1 :b 2 :c 3 :d 4} #{:a :b :c})) 
+         (util/get-service-result :conflict "one or more fields don't belong to the allowed fieldset")))
+
 (deftest test-validate-insert-update-relations
   (is (= (validate-insert-update-relations {:item 1} :item test-entity-handler) nil))
   (is (= (validate-insert-update-relations {:item 4} :thing test-entity-handler) nil))

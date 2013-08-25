@@ -1,7 +1,8 @@
 (ns itedge.service-hub.core.validators-util
   (:require [itedge.service-hub.core.handlers :refer :all]
             [itedge.service-hub.core.util :as util]
-            [itedge.service-hub.core.date-time-util :as date-time-util]))
+            [itedge.service-hub.core.date-time-util :as date-time-util]
+            [clojure.set :as set]))
 
 (defn- empty-val?
   "Determines if map value is empty - nil"
@@ -21,6 +22,12 @@
   (let [mandatory-map (select-keys attributes mandatory-set)]
     (when (some empty-val? mandatory-map)
       (util/get-service-result :conflict "one or more mandatory fields have null values"))))
+
+(defn validate-allowed-fields
+  "Validate if given attributes belong to the specified allowed set"
+  [attributes allowed-set]
+  (when (> (count (set/difference (set (keys attributes)) allowed-set)) 0)
+    (util/get-service-result :conflict "one or more fields don't belong to the allowed fieldset")))
 
 (defn- relations-not-exist
   "Determines if given relations exist"
