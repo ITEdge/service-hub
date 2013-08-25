@@ -1,4 +1,4 @@
-(defproject itedge/service-hub "1.2.0"
+(defproject itedge/service-hub "1.2.1"
   :plugins [[lein-sub "0.2.3"]]
   :sub ["core"
         "common"
