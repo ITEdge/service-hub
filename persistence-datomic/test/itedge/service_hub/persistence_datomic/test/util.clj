@@ -48,7 +48,7 @@
 
 (def item-fieldset #{:item/name :item/count :item/price})
 
-(def datomic-handler (create-datomic-handler conn item-fieldset))
+(def datomic-handler (create-handler conn item-fieldset))
 
 (deftest test-add-entity
   (let [e (add-entity conn {:item/name "item 4" :item/count 5 :item/price 12.2})

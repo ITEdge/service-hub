@@ -117,7 +117,7 @@
   [db fieldset criteria sort-attrs from to]
   (list-entities-p db (list-entities-q fieldset criteria) sort-attrs from to))
 
-(defn create-datomic-handler [conn fieldset]
+(defn create-handler [conn fieldset]
   (reify PEntityHandler
     (handle-find-entity [_ id]
       (get-entity (db conn) fieldset id))
