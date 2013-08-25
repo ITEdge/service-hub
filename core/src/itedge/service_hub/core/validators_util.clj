@@ -34,8 +34,9 @@
   [relations entity-handler]
   (some 
     (fn [item]
-      (not (handle-exist-entity entity-handler (if (map? item) (:id item) item))))
-        (if (vector? relations) relations (vector relations))))
+      (not (handle-exist-entity entity-handler (if (map? item) 
+                                                 ((handle-get-unique-identifier entity-handler) item) item))))
+        (if (coll? relations) relations (list relations))))
 
 (defn validate-insert-update-relations
   "Validate relation for insertion or update of given entity"
