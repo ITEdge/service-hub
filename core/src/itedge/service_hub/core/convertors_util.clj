@@ -3,7 +3,7 @@
             [itedge.service-hub.core.util :as util]))
 
 (defn- convert-value
-  "Converts specified value, if value is a map, recursivly update all map values"
+  "Converts specified value, if value is a map, recursively updates all map values"
   [convert-fn v]
   (if (map? v)
     (util/update-map-values v (partial convert-value convert-fn))
@@ -29,7 +29,7 @@
     :else (throw (Exception. (str "Only converting of maps and sequences of maps is supported")))))
 
 (defn format-property
-  "Returns function which formats property if property not nil"
+  "Returns function which formats property if property is not nil"
   [ft]
   (fn [property-value]
     (if property-value
@@ -37,7 +37,7 @@
       property-value)))
 
 (defn sanitize-iso-params
-  "Sanitize all whitespaces in params before conversion, should be + signs in case of ISO timestamps"
+  "Sanitizes all whitespaces in params before conversion, should be + signs in case of ISO timestamps"
   {:added "EBS 1.0"}
   [convert-fn param]
   (convert-fn (.replaceAll param "\\s" "+")))

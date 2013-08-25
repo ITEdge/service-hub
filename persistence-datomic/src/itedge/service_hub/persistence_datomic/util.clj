@@ -15,7 +15,7 @@
   (reduce (fn [acc item] (conj query [entity-symbol item])) query fieldset))
 
 (defn exist-entity? 
-  "Determines if entity with given fieldset and id exist in database"
+  "Determines if entity with given fieldset and id exists in database"
   [db fieldset id]
   (let [query (-> '[:find ?eid :in $ ?eid :where [?eid]]
                 (add-fieldset '?eid fieldset))] 
@@ -24,7 +24,7 @@
       false)))
 
 (defn get-entity
-  "Get entity with specified fieldset and id, if no such entity exist, returns nil"
+  "Gets entity with specified fieldset and id, if no such entity exists, returns nil"
   [db fieldset id]
   (when (exist-entity? db fieldset id)
     (convert-entity-to-map (entity db id))))
@@ -82,13 +82,13 @@
     (convert-entity-to-map (entity (:db-after @(transact conn [attributes])) id))))
 
 (defn delete-entity
-  "Strips entity with given fieldset and id of all attributes"
+  "Strips entity with given fieldset and id of all its attributes"
   [conn fieldset id]
   (when (exist-entity? (db conn) fieldset id)
     (:db/id (entity (:db-after @(transact conn [[:db.fn/retractEntity id]])) id))))
 
 (defn count-entities
-  "Count entities with given fieldset in specified db"
+  "Counts entities with given fieldset in specified db"
   [db fieldset criteria]
   (let [query (-> '[:find (count ?e) :where]
                 (add-fieldset '?e (unrestricted-fields fieldset criteria))
@@ -112,6 +112,6 @@
       (util/get-ranged-vector unsorted-entities from to))))
 
 (defn list-entities
-  "List entities with given fieldset, criteria, sorting and paging in specified db"
+  "Lists entities with given fieldset, criteria, sorting and paging in specified db"
   [db fieldset criteria sort-attrs from to]
   (list-entities-p db (list-entities-q fieldset criteria) sort-attrs from to))
