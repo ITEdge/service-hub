@@ -38,7 +38,6 @@
 
 (defn sanitize-iso-params
   "Sanitize all whitespaces in params before conversion, should be + signs in case of ISO timestamps"
-  {:added "EBS 1.0"}
   [convert-fn param]
   (convert-fn (.replaceAll param "\\s" "+")))
 
