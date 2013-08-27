@@ -29,7 +29,7 @@
     (reduce (fn [acc item] (conj acc (nth coll item))) [] (range from to))))
 
 (defn sort-maps
-  "sort collection of maps according to given sort-attrs, which should have form [[:a :ASC] [:b :DESC] ...]"
+  "Sorts collection of maps according to given sort-attrs, which should have form [[:a :ASC] [:b :DESC] ...]"
   [maps sort-attrs]
   (let [sort-fn (reduce (fn [acc item] (juxt acc (first item))) (first (first sort-attrs)) (rest sort-attrs))]
     (sort-by sort-fn maps)))
@@ -46,12 +46,12 @@
     (read-string s)))
 
  (defn abs  
-   "Returns absolute value of number"
+   "Returns absolute value of a number"
    [x]
    (if (< x 0) (- x) x)) 
 
 (defn get-service-result
-  "Create standard service result from supplied result-code and message"
+  "Creates standard service result from supplied result-code and message"
   [result-code message]
   {:return-code result-code :message message})
 

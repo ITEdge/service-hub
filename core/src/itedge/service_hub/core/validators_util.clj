@@ -10,21 +10,21 @@
   (nil? (val v)))
 
 (defn validate-insert-fields
-  "Validate mandatory fields for insertion of given entity"
+  "Validates mandatory fields for insertion of given entity"
   [attributes mandatory-set]
   (let [mandatory-map (select-keys attributes mandatory-set)]
     (when (or (not (= (count mandatory-set) (count mandatory-map))) (some empty-val? mandatory-map))
       (util/get-service-result :conflict "one or more mandatory fields are missing or empty"))))
 
 (defn validate-update-fields
-  "Validate mandatory fields for update of given entity"
+  "Validates mandatory fields for update of given entity"
   [attributes mandatory-set]
   (let [mandatory-map (select-keys attributes mandatory-set)]
     (when (some empty-val? mandatory-map)
       (util/get-service-result :conflict "one or more mandatory fields have null values"))))
 
 (defn validate-allowed-fields
-  "Validate if given attributes belong to the specified allowed set"
+  "Validates if given attributes belong to the specified allowed set"
   [attributes allowed-set]
   (when (> (count (set/difference (set (keys attributes)) allowed-set)) 0)
     (util/get-service-result :conflict "one or more fields don't belong to the allowed fieldset")))
@@ -39,22 +39,22 @@
         (if (coll? relations) relations (list relations))))
 
 (defn validate-insert-update-relations
-  "Validate relation for insertion or update of given entity"
+  "Validates relation for insertion or update of given entity"
   [attributes entity-key entity-handler]
   (when-let [related-value (entity-key attributes)]
     (when (relations-not-exist related-value entity-handler)
-      (util/get-service-result :conflict "mandatory related entity with given primary key does not exists"))))
+      (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))))
 
 (defn validate-mandatory-insert-relations
-  "Validate mandatory relation for insertion of given entity"
+  "Validates mandatory relation for insertion of given entity"
   [attributes entity-key entity-handler]
   (if-let [related-value (entity-key attributes)]
     (when (relations-not-exist related-value entity-handler)
-      (util/get-service-result :conflict "mandatory related entity with given primary key does not exists"))
-    (util/get-service-result :conflict "mandatory related entity not present")))
+      (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))
+    (util/get-service-result :conflict "mandatory related entity is not present")))
 
 (defn validate-unique-fields
-  "Validate unique fields among existing entities"
+  "Validates unique fields among existing entities"
   [attributes entity-handler unique-set]
   (let [unique-map (select-keys attributes unique-set)]
     (when (some (fn [e]
@@ -65,7 +65,7 @@
       (util/get-service-result :conflict "one or more unique values in entity are not unique among other entities"))))
 
 (defn validate-entity-still-there
-  "Validate if given entity still exists in system for update operations"
+  "Validates if given entity still exists in system for update operations"
   [attributes entity-handler]
   (let [pk (handle-get-unique-identifier entity-handler)]
 	  (if-let [id (pk attributes)]
@@ -100,15 +100,15 @@
     (validate-range from to (handle-count-entities entity-handler criteria))))
 
 (defn validate-implication-insert
-  "Validate implication of two properties for insert operation, eq. if first property is present and not null, 
+  "Validates implication of two properties for insert operation, eq. if first property is present and not null, 
    second must be present and not null too"
   [attributes first second]
   (when (first attributes)
     (when (not (second attributes))
-      (util/get-service-result :conflict "Implicative properties relation violated"))))
+      (util/get-service-result :conflict "Implicative properties relation was violated"))))
 
 (defn validate-implication-update
-  "Validate implication of two properties for upadte operarion, eq if first property not null, 
+  "Validates implication of two properties for update operation, eq if first property not null, 
    second must be not null too"
   [attributes entity-handler first second]
   (let [id ((handle-get-unique-identifier entity-handler) attributes)
@@ -116,7 +116,7 @@
     (validate-implication-insert attributes first second)))
 
 (defn validate-date-times-chronology
-  "Validate two dates, sooner and later"
+  "Validates two dates, sooner and later"
   [attributes entity-handler sooner-key later-key]
   (let [sooner (sooner-key attributes)
         later (later-key attributes)

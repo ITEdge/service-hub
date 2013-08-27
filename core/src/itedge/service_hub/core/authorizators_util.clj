@@ -22,7 +22,7 @@
   (assoc criteria user-key id))
 
 (defn entity-contains?
-  "Determines if single entity posses specified id or if collection of entities has such one which posses it"
+  "Determines if single entity possesses specified id or if collection of entities has such one which possesses it"
   [entity-id id]  
   (if (sequential? entity-id)
     (if (util/in? entity-id id)

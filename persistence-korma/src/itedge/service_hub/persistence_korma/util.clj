@@ -13,7 +13,7 @@
     value))
 
 (defn- translate
-  "Translate CQL expression into korma equivalent"
+  "Translates CQL expression into its korma equivalent"
   [expr]
   (let [k-e (key expr)
         v-e (val expr)
@@ -28,18 +28,18 @@
     [translated (translate-wildcards v-e)]))
 
 (defn- translate-expressions
-  "Translate CQL expressions into korma equivalents"
+  "Translates CQL expressions into korma equivalents"
   [k v]
   (let [reduce-fn (fn [k acc expr] (conj acc {k (translate expr)}))]
     (reduce (partial reduce-fn k) '() v)))
 
 (defn translate-relation-expressions
-  "Translate CQL expressions into korma equivalents for relation queries"
+  "Translates CQL expressions into korma equivalents for relation queries"
   [criteria]
   (util/update-map-values criteria (fn [e] (if (map? e) (translate (first e)) e))))
 
 (defn- process-expr
-  "Process expression (map entry) and return list of korma expressions with one or more items"
+  "Processes expression (map entry) and returns list of korma expressions with one or more items"
   [expr]
   (let [k (key expr)
         v (val expr)]
@@ -48,14 +48,14 @@
       (list {k (translate-wildcards v)}))))
 
 (defn- construct-list
-  "Construct final query expression in form of list (expr1 expr2...)"
+  "Constructs final query expression in form of list (expr1 expr2...)"
   [exprs]
   (let [reduce-fn (fn [acc expr]
                     (concat acc (process-expr expr)))]
     (reduce reduce-fn '() exprs)))
 
 (defn construct-and-list
-  "construct and list from list of expressions if there is more then one expression, otherwise return first expression"
+  "Constructs and list from list of expressions if there is more then one expression, otherwise returns first expression"
   [exprs]
   (let [exprs-list (construct-list exprs)
         exprs-count (count exprs-list)]
@@ -64,7 +64,7 @@
       (first exprs-list))))
 
 (defn- construct-relations
-  "Construct relations from attributes"
+  "Constructs relations from attributes"
   [attributes]
   (into {} (map (fn [entry] 
                   (let [k (key entry)
@@ -74,7 +74,7 @@
                       (hash-map k (if (map? v) (:id v) v))))) attributes)))
 
 (defn- extract-id
-  "Extract id from db insert results"
+  "Extracts id from db insert results"
   [results]
   (if (map? results)
     (first (vals results))

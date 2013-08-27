@@ -37,14 +37,14 @@
   (is (= (validate-insert-update-relations {:item 1} :item test-entity-handler) nil))
   (is (= (validate-insert-update-relations {:item 4} :thing test-entity-handler) nil))
   (is (= (validate-insert-update-relations {:item 4} :item test-entity-handler)
-         (util/get-service-result :conflict "mandatory related entity with given primary key does not exists"))))
+         (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))))
 
 (deftest test-validate-mandatory-insert-relations
   (is (= (validate-mandatory-insert-relations {:item 1} :item test-entity-handler) nil))
   (is (= (validate-mandatory-insert-relations {:item 4} :thing test-entity-handler)
-         (util/get-service-result :conflict "mandatory related entity not present")))
+         (util/get-service-result :conflict "mandatory related entity is not present")))
   (is (= (validate-mandatory-insert-relations {:item 4} :item test-entity-handler)
-         (util/get-service-result :conflict "mandatory related entity with given primary key does not exists"))))
+         (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))))
 
 (deftest test-validate-unique-fields
   (is (= (validate-unique-fields {:id 1 :name "test-entity-one"} test-entity-handler #{:name}) nil))
@@ -82,17 +82,17 @@
 (deftest test-validate-implication-insert
   (is (= (validate-implication-insert {:a 1 :b 2} :a :b) nil))
   (is (= (validate-implication-insert {:a 1 :b nil} :a :b)
-         (util/get-service-result :conflict "Implicative properties relation violated")))
+         (util/get-service-result :conflict "Implicative properties relation was violated")))
   (is (= (validate-implication-insert {:a 1} :a :b)
-         (util/get-service-result :conflict "Implicative properties relation violated"))))
+         (util/get-service-result :conflict "Implicative properties relation was violated"))))
 
 (deftest test-validate-implication-update
   (is (= (validate-implication-update {:id 1 :thing 4 :name "changed"} test-entity-handler :thing :name) nil))
   (is (= (validate-implication-update {:id 1 :thing 9} test-entity-handler :thing :name) nil))
   (is (= (validate-implication-update {:id 1 :thing 11} test-entity-handler :thing :linked)
-         (util/get-service-result :conflict "Implicative properties relation violated")))
+         (util/get-service-result :conflict "Implicative properties relation was violated")))
   (is (= (validate-implication-update {:id 4 :thing 12} test-entity-handler :thing :linked)
-         (util/get-service-result :conflict "Implicative properties relation violated"))))
+         (util/get-service-result :conflict "Implicative properties relation was violated"))))
 
 (deftest test-validate-date-times-chronology
   (is (= (validate-date-times-chronology {:first "2013-06-28T22:15:00.000+02:00" 

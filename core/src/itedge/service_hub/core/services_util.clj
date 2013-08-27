@@ -32,19 +32,19 @@
   (service-validator service-call authorizator-fn))
 
 (defmacro do-side-effects
-  "Macro which wraps some function, executes this function, does defined side effects and return result from this function"
+  "Macro which wraps some function, executes this function, does defined side effects and returns result from this function"
   [fn & side-effects]
   `(let [fn-result# ~fn]
      ~@side-effects
      fn-result#))
 
 (defn get-success-response
-  "Function which create standard success response for handler result"
+  "Function which creates standard success response for handler result"
   [handler-result]
   (util/get-service-result :ok handler-result))
 
 (defn get-success-delete-response
-  "Function which create standard success-delete response for handler result"
+  "Function which creates standard success-delete response for handler result"
   [handler-result]
   (util/get-service-result :delete-ok handler-result))
 
