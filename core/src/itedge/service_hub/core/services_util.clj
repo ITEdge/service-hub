@@ -2,7 +2,7 @@
   (:require [itedge.service-hub.core.util :as util]))
 
 (defn handle-service-exception
-  "Handles service exception"
+  "Returns exception wrapped in standard service-result map"
   [e]
   (util/get-service-result :error (map #(.toString %) (.getStackTrace e))))
 
