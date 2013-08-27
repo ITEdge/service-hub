@@ -53,10 +53,10 @@
 (deftest test-add-entity
   (let [e (add-entity conn {:item/name "item 4" :item/count 5 :item/price 12.2})
         e-id (:db/id e)
-        e-h (handle-add-entity datomic-handler {:item/name "item 5" :item/count 7 :item/price 17.1})
+        e-h (handle-add-entity datomic-handler {:item/name "item 5" :item/count 7 :item/price 17.1 :item/linked e-id})
         e-h-id ((handle-get-unique-identifier datomic-handler) e-h)]
     (is (= e {:db/id e-id :item/name "item 4" :item/count 5 :item/price 12.2}))
-    (is (= e-h {:db/id e-h-id :item/name "item 5" :item/count 7 :item/price 17.1}))))
+    (is (= e-h {:db/id e-h-id :item/name "item 5" :item/count 7 :item/price 17.1 :item/linked e-id}))))
 
 (deftest test-update-entity
   (let [e (first (list-entities (db conn) item-fieldset {:item/name "item 4"} nil nil nil))
@@ -66,7 +66,7 @@
         updated-entity (update-entity conn {:db/id e-id :item/price 13.2})
         updated-h-entity (handle-update-entity datomic-handler {:db/id e-h-id :item/price 18.1})]
     (is (= updated-entity {:db/id e-id :item/name "item 4" :item/count 5 :item/price 13.2}))
-    (is (= updated-h-entity {:db/id e-h-id :item/name "item 5" :item/count 7 :item/price 18.1}))))
+    (is (= updated-h-entity {:db/id e-h-id :item/name "item 5" :item/count 7 :item/price 18.1 :item/linked e-id}))))
 
 (deftest test-delete-entity
   (let [e (first (list-entities (db conn) item-fieldset {:item/name "item 2"} nil nil nil))

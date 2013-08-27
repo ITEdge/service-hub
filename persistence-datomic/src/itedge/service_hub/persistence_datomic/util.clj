@@ -9,7 +9,10 @@
 
 (defn- convert-entity-to-map
   [e]
-  (let [m (reduce (fn [acc [k v]] (assoc acc k v)) {} e)]
+  (let [m (reduce (fn [acc [k v]] 
+                    (assoc acc k (if (instance? datomic.Entity v) 
+                                   (:db/id v) 
+                                   v))) {} e)]
     (assoc m :db/id (:db/id e))))
 
 (defn- add-fieldset [query entity-symbol fieldset]
