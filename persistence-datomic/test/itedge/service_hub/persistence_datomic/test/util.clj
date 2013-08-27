@@ -37,6 +37,21 @@
   :db/cardinality :db.cardinality/one
   :db/doc "Linked articles"
   :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :item/lineItems
+  :db/isComponent true
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/many
+  :db/doc "line item"
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id [:db.part/db]
+  :db/ident :lineItem/code
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc "Line item code"
+  :db.install/_attribute :db.part/db}
 ])
 @(d/transact conn schema-tx)
 (def data-tx [

@@ -7,12 +7,18 @@
 (defn- extract-single [result]
   (first (first result)))
 
+(defn- convert-datomic-value
+  [v]
+  (if (instance? datomic.Entity v) 
+    (:db/id v)
+    v))
+
 (defn- convert-entity-to-map
   [e]
   (let [m (reduce (fn [acc [k v]] 
-                    (assoc acc k (if (instance? datomic.Entity v) 
-                                   (:db/id v) 
-                                   v))) {} e)]
+                    (assoc acc k (if (and (coll? v) (not (instance? datomic.Entity v)))
+                                   (into #{} (map convert-datomic-value v))
+                                   (convert-datomic-value v)))) {} e)]
     (assoc m :db/id (:db/id e))))
 
 (defn- add-fieldset [query entity-symbol fieldset]
