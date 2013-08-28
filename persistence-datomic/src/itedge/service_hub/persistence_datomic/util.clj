@@ -22,7 +22,7 @@
     (assoc m :db/id (:db/id e))))
 
 (defn- add-fieldset [query entity-symbol fieldset]
-  (reduce (fn [acc item] (conj query [entity-symbol item])) query fieldset))
+  (reduce (fn [acc item] (conj acc [entity-symbol item])) query fieldset))
 
 (defn exist-entity? 
   "Determines if entity with given fieldset and id exists in database"
@@ -68,11 +68,11 @@
 	                   :value [(conj func-body compare-w)]}))) 
 
 (defn- add-criteria [query entity-symbol criteria]
-  (reduce (fn [acc item]
+  (reduce (fn [acc [k v]]
             (let [item-symbol (gensym "?item")]
-              (-> query 
-                (conj [entity-symbol (key item) item-symbol]) 
-                (conj (get-function-expression (val item) item-symbol))))) query criteria))
+              (-> acc 
+                (conj [entity-symbol k item-symbol]) 
+                (conj (get-function-expression v item-symbol))))) query criteria))
 
 (defn- unrestricted-fields [fieldset criteria]
   (set/difference fieldset (set (keys criteria))))
@@ -102,8 +102,9 @@
   [db fieldset criteria]
   (let [query (-> '[:find (count ?e) :where]
                 (add-fieldset '?e (unrestricted-fields fieldset criteria))
-                (add-criteria '?e criteria))]
-    (extract-single (q query db))))
+                (add-criteria '?e criteria))
+        result (extract-single (q query db))]
+    (if result result 0)))
 
 (defn- list-entities-q
   [fieldset criteria]
@@ -117,9 +118,11 @@
   (let [entity-ids (q query db)
         unsorted-entities (map (fn [r] (convert-entity-to-map (entity db (first r)))) 
                                (sort entity-ids))]
-    (if (seq sort-attrs)
-      (util/get-ranged-vector (util/sort-maps unsorted-entities sort-attrs) from to)
-      (util/get-ranged-vector unsorted-entities from to))))
+    (if (> (count unsorted-entities) 0)
+      (if (seq sort-attrs)
+        (util/get-ranged-vector (util/sort-maps unsorted-entities sort-attrs) from to)
+        (util/get-ranged-vector unsorted-entities from to))
+      [])))
 
 (defn list-entities
   "Lists entities with given fieldset, criteria, sorting and paging in specified db"
