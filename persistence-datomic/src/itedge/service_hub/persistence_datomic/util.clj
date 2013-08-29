@@ -4,22 +4,23 @@
             [itedge.service-hub.core.handlers :refer :all]
             [itedge.service-hub.core.util :as util]))
 
+(defprotocol PRealizable
+  "Every type implementing this protocol should return clojure associative datastructure 
+   (implementing IPersistentMap) representing entity data associated with this type fieldset and db, 
+   which could be for example numeric or string primary key or lazy  map of entity attributes"
+  (get-entity-data [information fieldset db]))
+
+(defn- convert-entity-to-map [dynamic-map]
+  (let [m (reduce (fn [acc [k v]] (assoc acc k v)) {} dynamic-map)]
+    (assoc m :db/id (:db/id dynamic-map))))
+
+(extend-type datomic.Entity
+  PRealizable
+  (get-entity-data [dynamic-map fieldset db]
+    (convert-entity-to-map dynamic-map)))
+
 (defn- extract-single [result]
   (first (first result)))
-
-(defn- convert-datomic-value
-  [v]
-  (if (instance? datomic.Entity v) 
-    (:db/id v)
-    v))
-
-(defn- convert-entity-to-map
-  [e]
-  (let [m (reduce (fn [acc [k v]] 
-                    (assoc acc k (if (and (coll? v) (not (instance? datomic.Entity v)))
-                                   (into #{} (map convert-datomic-value v))
-                                   (convert-datomic-value v)))) {} e)]
-    (assoc m :db/id (:db/id e))))
 
 (defn- add-fieldset [query entity-symbol fieldset]
   (reduce (fn [acc item] (conj acc [entity-symbol item])) query fieldset))
@@ -38,6 +39,21 @@
   [db fieldset id]
   (when (exist-entity? db fieldset id)
     (convert-entity-to-map (entity db id))))
+
+(extend-type java.lang.Integer
+  PRealizable
+  (get-entity-data [id fieldset db]
+    (get-entity db fieldset id)))
+
+(extend-type java.lang.Long
+  PRealizable
+  (get-entity-data [id fieldset db]
+    (get-entity db fieldset id)))
+
+(extend-type clojure.lang.Keyword
+  PRealizable
+  (get-entity-data [key fieldset db]
+    (get-entity key fieldset db)))
 
 (defn- not-compare-w [v c-v]
   (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
@@ -132,7 +148,7 @@
 (defn create-handler [conn fieldset]
   (reify PEntityHandler
     (handle-find-entity [_ id]
-      (get-entity (db conn) fieldset id))
+      (get-entity-data id fieldset (db conn)))
     (handle-exist-entity [_ id]
       (exist-entity? (db conn) fieldset id))
     (handle-delete-entity [_ id]
