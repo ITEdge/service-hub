@@ -5,7 +5,7 @@
             [itedge.service-hub.core.handlers-memory :as handlers-memory] 
             [itedge.service-hub.core.util :as util]))
 
-(def test-entity-handler (handlers-memory/create-memory-handler [{:name "test-entity" :users [1 2 3]}] :id))
+(def test-entity-handler (handlers-memory/create-handler [{:name "test-entity" :users [1 2 3]}] :id))
 
 (deftest test-authenticated?
   (is (= (authenticated? {:id 1 :username "test" :roles #{:user :admin}}) nil))

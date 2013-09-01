@@ -7,12 +7,12 @@
             [itedge.service-hub.core.date-time-util :as date-time-util]))
 
 (def test-entity-handler 
-  (handlers-memory/create-memory-handler [{:name "test-entity-one" :thing 2 :linked nil :things [2 3]
-                                           :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
-                                          {:name "test-entity-two" :thing 5 :linked 1 :things [1]
-                                           :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
-                                          {:name "test-entity-three" :thing 7 :linked nil 
-                                           :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}] :id))
+  (handlers-memory/create-handler [{:name "test-entity-one" :thing 2 :linked nil :things [2 3]
+                                    :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
+                                   {:name "test-entity-two" :thing 5 :linked 1 :things [1]
+                                    :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}
+                                   {:name "test-entity-three" :thing 7 :linked nil 
+                                    :updated (date-time-util/iso-8061-to-datetime "2013-07-01T22:15:00.000+02:00")}] :id))
 
 (deftest test-validate-insert-fields
   (is (= (validate-insert-fields {:a 1 :b 2 :c 3} #{:a :b}) nil))

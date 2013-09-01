@@ -1,6 +1,11 @@
 (ns itedge.service-hub.core.test.services-util
   (:require [itedge.service-hub.core.services-util :refer :all]
+            [itedge.service-hub.core.handlers :refer :all]
+            [itedge.service-hub.core.services :refer :all]
+            [itedge.service-hub.core.validators :refer :all]
+            [itedge.service-hub.core.authorizators :refer :all]
             [clojure.test :refer :all]
+            [itedge.service-hub.core.handlers-memory :as handlers-memory]
             [itedge.service-hub.core.util :as util]))
 
 (deftest test-handle-service-exception
@@ -65,5 +70,25 @@
     (is (= (:to response) 22))
     (is (= (:total response) 23))))
 
-
-
+(deftest test-scaffold-service
+  (let [test-handler (handlers-memory/create-handler [{:name "test 1"} {:name "test 2"}] :id)
+        test-validator (reify PEntityServiceValidator
+                         (validate-find-entity [_ id] nil)
+                         (validate-delete-entity [_ id] nil)
+                         (validate-update-entity [_ attributes] nil)
+                         (validate-add-entity [_ attributes] nil)
+                         (validate-list-entities [_ criteria sort-attrs from to] nil))
+        test-authorizator (reify PEntityServiceAuthorizator
+                            (authorize-find-call [_ id auth] nil)
+                            (authorize-delete-call [_ id auth] nil)
+                            (authorize-update-call [_ attributes auth] nil)
+                            (authorize-add-call [_ attributes auth] nil)
+                            (authorize-list-call [_ criteria auth] nil)
+                            (restrict-list-call [_ criteria auth] criteria))
+        test-service (scaffold-service test-handler test-validator test-authorizator)]
+    (is (= (get-success-response {:id 1 :name "test 1"}) (find-entity test-service 1 nil)))
+    (is (= (get-success-delete-response 2) (delete-entity test-service 2 nil)))
+    (is (= (get-success-response {:id 1 :name "updated 1"}) (update-entity test-service {:id 1 :name "updated 1"} nil)))
+    (is (= (get-success-response {:id 3 :name "test 3"}) (add-entity test-service {:name "test 3"} nil)))
+    (is (= (-> (get-success-response [{:id 1 :name "updated 1"} {:id 3 :name "test 3"}])
+               (assoc-range-info nil nil (handle-count-entities test-handler nil))) (list-entities test-service nil nil nil nil nil)))))

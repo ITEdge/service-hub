@@ -40,7 +40,7 @@
         (every? (fn [e] (compare-fn ((key e) v) (val e))) criteria))
       true)))
 
-(defn create-memory-handler [data id-key]
+(defn create-handler [data id-key]
   (let [index (atom 0)
         entity-map (atom (index-data data id-key index))]
     (reify PEntityHandler

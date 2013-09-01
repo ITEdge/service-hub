@@ -3,8 +3,8 @@
             [itedge.service-hub.core.handlers :refer :all]
             [clojure.test :refer :all]))
 
-(def test-handler (create-memory-handler [{:name "test-entity-one" :thing 2}
-                                          {:name "test-entity-two" :thing 7}] :id))
+(def test-handler (create-handler [{:name "test-entity-one" :thing 2}
+                                   {:name "test-entity-two" :thing 7}] :id))
 
 (handle-add-entity test-handler {:name "test-entity-three" :thing 11})
 (handle-add-entity test-handler {:name "test-entity-four" :thing 7})
