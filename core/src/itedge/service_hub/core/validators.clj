@@ -12,6 +12,6 @@
   (validate-delete-entity [this id] 
     "Validate delete operation for given entity id, 
      returns nil if validation successful, otherwise returns validation result")
-  (validate-list-entities [this criteria from to] 
-    "Validate list operation for given entity, optional with criteria and range boundaries, 
+  (validate-list-entities [this criteria sort-attrs from to] 
+    "Validate list operation for given entity, optional with criteria, sort-attrs and range boundaries, 
      returns nil if validation successful, otherwise returns validation result"))

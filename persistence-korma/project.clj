@@ -1,4 +1,4 @@
-(defproject itedge/service-hub.persistence-korma "1.2.1"
+(defproject itedge/service-hub.persistence-korma "1.3.0-SNAPSHOT"
   :description "Service-Hub korma persistence layer (SQL abstraction layer)"
   :min-lein-version "2.0.0"
   :url "https://github.com/ITEdge/service-hub"

@@ -1,4 +1,4 @@
-(defproject itedge/service-hub.persistence-datomic "1.2.1"
+(defproject itedge/service-hub.persistence-datomic "1.3.0-SNAPSHOT"
   :description "Datomic persistence layer"
   :min-lein-version "2.0.0"
   :url "https://github.com/ITEdge/service-hub"
