@@ -5,45 +5,43 @@
             [itedge.service-hub.core.handlers :refer :all]))
 
 (defprotocol PRealizable
-  "Every type implementing this protocol should return clojure associative datastructure 
-   (implementing IPersistentMap) representing entity data associated with this type fieldset and db, 
-   which could be for example numeric or string primary key or lazy  map of entity attributes"
-  (get-entity-data [information fieldset db])
-  (resolve-to-value [information]))
+  "Protocol for datomic handler arguments"
+  (get-entity-data [information fieldset db] "Get entity data in form of associative map structure")
+  (resolve-id-value [information] "Resolve id value"))
 
 (extend-type datomic.Entity
   PRealizable
   (get-entity-data [dynamic-map fieldset db]
     (datomic-util/convert-entity-to-map dynamic-map))
-  (resolve-to-value [dynamic-map] 
+  (resolve-id-value [dynamic-map] 
     (:db/id dynamic-map)))
 
 (extend-type java.lang.Object
   PRealizable
   (get-entity-data [id fieldset db]
     (datomic-util/get-entity db fieldset id))
-  (resolve-to-value [id] id))
+  (resolve-id-value [id] id))
 
 (extend-type nil
   PRealizable
   (get-entity-data [id fieldset db] nil)
-  (resolve-to-value [id] nil))
+  (resolve-id-value [id] nil))
 
 (defn create-handler [conn fieldset]
   (reify PEntityHandler
     (handle-find-entity [_ id]
       (get-entity-data id fieldset (db conn)))
     (handle-exist-entity [_ id]
-      (datomic-util/exist-entity? (db conn) fieldset (resolve-to-value id)))
+      (datomic-util/exist-entity? (db conn) fieldset (resolve-id-value id)))
     (handle-delete-entity [_ id]
-      (datomic-util/delete-entity conn fieldset (resolve-to-value id)))
+      (datomic-util/delete-entity conn fieldset (resolve-id-value id)))
     (handle-update-entity [_ attributes]
-      (datomic-util/update-entity conn (util/update-map-values attributes resolve-to-value)))
+      (datomic-util/update-entity conn (util/update-map-values attributes resolve-id-value)))
     (handle-add-entity [_ attributes]
-      (datomic-util/add-entity conn (util/update-map-values attributes resolve-to-value)))
+      (datomic-util/add-entity conn (util/update-map-values attributes resolve-id-value)))
     (handle-list-entities [_ criteria sort-attrs from to]
-      (datomic-util/list-entities (db conn) fieldset (util/update-map-values criteria resolve-to-value) :db/id sort-attrs from to))
+      (datomic-util/list-entities (db conn) fieldset (util/update-map-values criteria resolve-id-value) :db/id sort-attrs from to))
     (handle-count-entities [_ criteria]
-      (datomic-util/count-entities (db conn) fieldset (util/update-map-values criteria resolve-to-value) :db/id))
+      (datomic-util/count-entities (db conn) fieldset (util/update-map-values criteria resolve-id-value) :db/id))
     (handle-get-unique-identifier [_]
       :db/id)))

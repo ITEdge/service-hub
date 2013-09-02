@@ -8,10 +8,10 @@
             [itedge.service-hub.core.services-util :as services-util]
             [itedge.service-hub.http-ring.content-util :as content-util]))
 
-(def test-handler (handlers-memory/create-memory-handler [{:name "test-entity-one" :thing 2}
-                                                          {:name "test-entity-two" :thing 7}
-                                                          {:name "test-entity-three" :thing 9}
-                                                          {:name "test-entity-four" :thing 11}] :id))
+(def test-handler (handlers-memory/create-handler [{:name "test-entity-one" :thing 2}
+                                                   {:name "test-entity-two" :thing 7}
+                                                   {:name "test-entity-three" :thing 9}
+                                                   {:name "test-entity-four" :thing 11}] :id))
 
 (deftype TestService [test-handler]
   PEntityService

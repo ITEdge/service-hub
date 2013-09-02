@@ -32,4 +32,18 @@
     (is (= (handle-find-entity datomic-handler (:item/linked new-e)) e))
     (is (= (-> new-e2 :item/linked :item/name) "item 1"))))
 
+(deftest test-count-entities
+  (let [id (first (first (q '[:find ?e :where [?e :item/name "item 2"]] (db conn))))
+        e (handle-find-entity datomic-handler id)]
+    (is (= (handle-count-entities datomic-handler {:db/id id}) 1))
+    (is (= (handle-count-entities datomic-handler {:db/id (:item/linked e)}) 1))
+    (is (= (handle-count-entities datomic-handler {:item/linked (:item/linked e)}) 2))))
+
+(deftest test-list-entities
+  (let [id (first (first (q '[:find ?e :where [?e :item/name "item 2"]] (db conn))))
+        e (handle-find-entity datomic-handler id)
+        q-result (handle-list-entities datomic-handler {:item/linked (:item/linked e) :item/name "item 2"} nil nil nil)
+        q-result-1 (first q-result)]
+    (is (= q-result-1 e))))
+
 (shutdown false)
