@@ -17,7 +17,7 @@
   "Determines if entity with given fieldset and id exists in database"
   [db fieldset id]
   (let [query (-> '[:find ?eid :in $ ?eid :where [?eid]]
-                (add-fieldset '?eid fieldset))] 
+                  (add-fieldset '?eid fieldset))] 
     (if-let [e (extract-single (q query db id))]
       true
       false)))
@@ -45,8 +45,8 @@
         expression-key (key expression)
         compare-value (val expression)
         func-body (-> '()
-                    (conj compare-value)
-                    (conj item-symbol))]
+                      (conj compare-value)
+                      (conj item-symbol))]
 	  (expression-key {:not [(conj func-body not-compare-w)]
                            :not-in [(conj func-body not-in-compare)]
 	                   :in [(conj func-body in-compare)]
@@ -60,8 +60,8 @@
   (reduce (fn [acc [k v]]
             (let [item-symbol (gensym "?item")]
               (-> acc 
-                (conj [entity-symbol k item-symbol]) 
-                (conj (get-function-expression v item-symbol))))) query criteria))
+                  (conj [entity-symbol k item-symbol]) 
+                  (conj (get-function-expression v item-symbol))))) query criteria))
 
 (defn- unrestricted-fields [fieldset criteria]
   (set/difference fieldset (set (keys criteria))))
@@ -88,23 +88,39 @@
 
 (defn count-entities
   "Counts entities with given fieldset in specified db"
-  [db fieldset criteria]
-  (let [query (-> '[:find (count ?e) :where]
-                (add-fieldset '?e (unrestricted-fields fieldset criteria))
-                (add-criteria '?e criteria))
-        result (extract-single (q query db))]
+  [db fieldset criteria id-key]
+  (let [entity-symbol '?e
+        count-clause (-> '() (conj entity-symbol) (conj 'count))
+        in-clause (if (contains? criteria id-key) [:in '$ entity-symbol] [:in '$])
+        query-args (if (contains? criteria id-key) (list db (id-key criteria)) (list db))
+        criteria (dissoc criteria id-key)
+        where-clauses (-> [:where]
+                          (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
+                          (add-criteria entity-symbol criteria))
+        query (into [] (-> [:find count-clause]
+                           (concat in-clause)
+                           (concat where-clauses)))
+        result (extract-single (apply q query query-args))]
     (if result result 0)))
 
-(defn- list-entities-q
-  [fieldset criteria]
-  (-> '[:find ?e :where]
-      (add-fieldset '?e (unrestricted-fields fieldset criteria))
-      (add-criteria '?e criteria)))
+(defn- list-entities-q-a
+  [fieldset criteria id-key db]
+  (let [entity-symbol '?e
+        in-clause (if (contains? criteria id-key) [:in '$ entity-symbol] [:in '$])
+        query-args (if (contains? criteria id-key) (list db (id-key criteria)) (list db))
+        criteria (dissoc criteria id-key)
+        where-clauses (-> [:where]
+                          (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
+                          (add-criteria entity-symbol criteria))
+        query (into [] (-> [:find entity-symbol]
+                           (concat in-clause)
+                           (concat where-clauses)))]
+    [query query-args]))
 
 (defn list-entities-p
   "Processes list entities query in specified db, sorts and paginates the result"
-  [db query sort-attrs from to]
-  (let [entity-ids (q query db)
+  [db [query query-args] sort-attrs from to]
+  (let [entity-ids (apply q query query-args)
         unsorted-entities (map (fn [r] (convert-entity-to-map (entity db (first r)))) 
                                (sort entity-ids))]
     (if (> (count unsorted-entities) 0)
@@ -115,7 +131,7 @@
 
 (defn list-entities
   "Lists entities with given fieldset, criteria, sorting and paging in specified db"
-  [db fieldset criteria sort-attrs from to]
-  (list-entities-p db (list-entities-q fieldset criteria) sort-attrs from to))
+  [db fieldset criteria id-key sort-attrs from to]
+  (list-entities-p db (list-entities-q-a fieldset criteria id-key db) sort-attrs from to))
 
 
