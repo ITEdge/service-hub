@@ -18,7 +18,7 @@ Have a look at (https://github.com/ITEdge/service-hub-examples)
 
 ## Documentation
 
-See [wiki](https://github.com/ITEdge/ServiceHub/wiki)
+See [wiki](https://github.com/ITEdge/service-hub/wiki)
 
 ## Future work
 
