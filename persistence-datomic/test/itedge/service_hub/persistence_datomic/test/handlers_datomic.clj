@@ -17,10 +17,16 @@
 (deftest test-handle-find-entity
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 1"]] (db conn))))
         id-2 (first (first (q '[:find ?e :where [?e :item/name "item 2"]] (db conn))))
+        id-3 (first (first (q '[:find ?e :where [?e :item/name "item 3"]] (db conn))))
+        id-5 (first (first (q '[:find ?e :where [?e :item/name "item 5"]] (db conn))))
         e (handle-find-entity datomic-handler id)
-        e-2 (handle-find-entity datomic-handler id-2)]
+        e-2 (handle-find-entity datomic-handler id-2)
+        e-3 (handle-find-entity datomic-handler id-3)
+        e-5 (handle-find-entity datomic-handler id-5)]
     (is (= e {:db/id id :item/name "item 1" :item/count 7 :item/price 20.3 :item/codes #{"C1" "C2"}}))
-    (is (= e (handle-find-entity datomic-handler (:item/linked e-2))))))
+    (is (= e (handle-find-entity datomic-handler (:item/linked e-2))))
+    (is (= e-3 (handle-find-entity datomic-handler (:item/linked e-5))))
+    (is (= e-5 (handle-find-entity datomic-handler (:item/linked e-3))))))
 
 (deftest test-handle-add-entity
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 2"]] (db conn))))

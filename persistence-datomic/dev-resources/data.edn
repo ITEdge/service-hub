@@ -1,6 +1,6 @@
 [
 {:db/id #db/id[:db.part/user -1] :item/name "item 1" :item/count 7 :item/price 20.3 :item/codes #{"C1" "C2"}}
 {:db/id #db/id[:db.part/user -2] :item/name "item 2" :item/count 3 :item/price 11.9 :item/linked #db/id[:db.part/user -1]}
-{:db/id #db/id[:db.part/user -3] :item/name "item 3" :item/count 9 :item/price 17.8 :item/linked #db/id[:db.part/user -2]}
-{:db/id #db/id[:db.part/user -4] :item/name "item 5" :item/count 11 :item/price 19.1 :item/lineItems #{{:lineItem/code "LC"}}}
+{:db/id #db/id[:db.part/user -3] :item/name "item 3" :item/count 9 :item/price 17.8 :item/linked #db/id[:db.part/user -5]}
+{:db/id #db/id[:db.part/user -5] :item/name "item 5" :item/count 11 :item/price 19.1 :item/linked #db/id[:db.part/user -3] :item/lineItems #{{:lineItem/code "LC"}}}
 ]
