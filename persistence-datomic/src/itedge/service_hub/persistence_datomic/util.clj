@@ -1,5 +1,5 @@
 (ns itedge.service-hub.persistence-datomic.util
-  (:require [datomic.api :as d :refer [q db entity transact resolve-tempid]]
+  (:require [datomic.api :as d :refer [q db entity transact tempid resolve-tempid]]
             [clojure.set :as set]
             [itedge.service-hub.core.util :as util]))
 
@@ -69,9 +69,10 @@
 (defn add-entity
   "Adds entity with given attributes in the specified connection"
   [conn attributes]
-  (let [tx-attributes (assoc attributes :db/id -1)
+  (let [temp-id (tempid :db.part/user -1)
+        tx-attributes (assoc attributes :db/id temp-id)
         tx-result @(transact conn [tx-attributes])
-        final-id (resolve-tempid (db conn) (:tempids tx-result) -1)]
+        final-id (resolve-tempid (db conn) (:tempids tx-result) temp-id)]
     (convert-entity-to-map (entity (:db-after tx-result) final-id))))
 
 (defn update-entity
