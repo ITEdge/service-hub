@@ -17,30 +17,30 @@
   PEntityService
   (find-entity [_ id auth]
     (services-util/get-service-result
-      (services-util/get-success-response
-        (handle-find-entity test-handler id))))
+     (services-util/get-success-response
+      (handle-find-entity test-handler id))))
   (delete-entity [_ id auth]
     (services-util/get-service-result
-      (services-util/get-success-delete-response 
-        (handle-delete-entity test-handler id))))
+     (services-util/get-success-delete-response 
+      (handle-delete-entity test-handler id))))
   (update-entity [_ attributes auth]
     (services-util/get-service-result
-      (services-util/get-success-response 
-        (handle-update-entity test-handler attributes))))
+     (services-util/get-success-response 
+      (handle-update-entity test-handler attributes))))
   (add-entity [_ attributes auth]
     (services-util/get-service-result
-      (services-util/get-success-response 
-        (handle-add-entity test-handler attributes))))
+     (services-util/get-success-response 
+      (handle-add-entity test-handler attributes))))
   (list-entities [_ criteria sort-attrs from to auth]
     (services-util/get-service-result
-      (-> (services-util/get-success-response 
-        (handle-list-entities test-handler criteria sort-attrs from to))
-        (services-util/assoc-range-info from to (handle-count-entities test-handler criteria))))))
+     (-> (services-util/get-success-response 
+          (handle-list-entities test-handler criteria sort-attrs from to))
+         (services-util/assoc-range-info from to (handle-count-entities test-handler criteria))))))
 
 (def test-service (->TestService test-handler))
 
 (defroutes test-routes
-  (scaffold-crud-routes "/tests" test-service :id content-util/read-json content-util/craft-json-response))
+  (scaffold-crud-routes "/tests" test-service :id content-util/read-json content-util/craft-json-response true))
 
 (deftest test-scaffolded-routes
   (is (= (test-routes {:request-method :get :uri "/tests/1"}) 
