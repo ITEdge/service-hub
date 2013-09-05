@@ -3,7 +3,10 @@
             [clojure.set :as set]
             [itedge.service-hub.core.util :as util]))
 
-(defn convert-entity-to-map [dynamic-map]
+(defn convert-entity-to-map 
+  "Converts datomic.Entity to clojure persistent map, 
+   doing only flat conversion, so nested entities are not converted"
+  [dynamic-map]
   (let [m (reduce (fn [acc [k v]] (assoc acc k v)) {} dynamic-map)]
     (assoc m :db/id (:db/id dynamic-map))))
 
@@ -47,14 +50,14 @@
         func-body (-> '()
                       (conj compare-value)
                       (conj item-symbol))]
-	  (expression-key {:not [(conj func-body not-compare-w)]
-                           :not-in [(conj func-body not-in-compare)]
-	                   :in [(conj func-body in-compare)]
-	                   :gt [(conj func-body >)] 
-	                   :lt [(conj func-body <)]
-	                   :gteq [(conj func-body >=)]
-	                   :lteq [(conj func-body <=)]
-	                   :value [(conj func-body compare-w)]}))) 
+    (expression-key {:not [(conj func-body not-compare-w)]
+                     :not-in [(conj func-body not-in-compare)]
+                     :in [(conj func-body in-compare)]
+                     :gt [(conj func-body >)] 
+                     :lt [(conj func-body <)]
+                     :gteq [(conj func-body >=)]
+                     :lteq [(conj func-body <=)]
+                     :value [(conj func-body compare-w)]}))) 
 
 (defn- add-criteria [query entity-symbol criteria]
   (reduce (fn [acc [k v]]
