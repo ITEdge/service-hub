@@ -15,18 +15,18 @@
   "Converts specified values in map by means of convert-fn"
   [m keys-set convert-fn]
   (into {} (map (fn [item]
-    (let [k (key item)
-          v (val item)]
-      (hash-map k (if (keys-set k) (convert-value convert-fn v) v)))) m)))
+                  (let [k (key item)
+                        v (val item)]
+                    (hash-map k (if (keys-set k) (convert-value convert-fn v) v)))) m)))
 
 (defn convert-specified-values
   "Converts specified values in map or vector of maps by means of convert-fn"
   [vals keys-set convert-fn]
   (cond
-    (nil? vals) vals
-    (map? vals) (convert-map-values vals keys-set convert-fn)
-    (sequential? vals) (map #(convert-map-values % keys-set convert-fn) vals)
-    :else (throw (Exception. (str "Only converting of maps and sequences of maps is supported")))))
+   (nil? vals) vals
+   (map? vals) (convert-map-values vals keys-set convert-fn)
+   (sequential? vals) (map #(convert-map-values % keys-set convert-fn) vals)
+   :else (throw (Exception. (str "Only converting of maps and sequences of maps is supported")))))
 
 (defn format-property
   "Returns function which formats property if property is not nil"

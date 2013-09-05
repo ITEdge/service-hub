@@ -33,10 +33,10 @@
   "Determines if given relations exist"
   [relations entity-handler]
   (some 
-    (fn [item]
-      (not (handle-exist-entity entity-handler (if (map? item) 
-                                                 ((handle-get-unique-identifier entity-handler) item) item))))
-        (if (coll? relations) relations (list relations))))
+   (fn [item]
+     (not (handle-exist-entity entity-handler (if (map? item) 
+                                                ((handle-get-unique-identifier entity-handler) item) item))))
+   (if (coll? relations) relations (list relations))))
 
 (defn validate-insert-update-relations
   "Validates relation for insertion or update of given entity"
@@ -68,10 +68,10 @@
   "Validates if given entity still exists in system for update operations"
   [attributes entity-handler]
   (let [pk (handle-get-unique-identifier entity-handler)]
-	  (if-let [id (pk attributes)]
-	    (when (not (handle-exist-entity entity-handler id))
-	      (util/get-service-result :gone "requested entity does not exist anymore, it was probably deleted by another user"))
-	    (util/get-service-result :conflict "requested entity does not posses id, which is required to check it's availability"))))
+    (if-let [id (pk attributes)]
+      (when (not (handle-exist-entity entity-handler id))
+        (util/get-service-result :gone "requested entity does not exist anymore, it was probably deleted by another user"))
+      (util/get-service-result :conflict "requested entity does not posses id, which is required to check it's availability"))))
 
 (defn validate-entity-present
   "Validates if given entity is present in system"

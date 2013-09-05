@@ -1,7 +1,8 @@
 (ns itedge.service-hub.common.util)
 
-(defn update-map-keys-values [m f]
+(defn update-map-keys-values
   "Updates map keys and values with provided fn"
+  [m f]
   (into {} (for [[k v] m] [k (f k v)])))
 
 (defn update-if-in

@@ -7,18 +7,20 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defn wildcard-compare [compare-value wildcard-value]
+(defn wildcard-compare
+  "Compare string value with another string value which may contain wildcards"
+  [compare-value wildcard-value]
   (if (and (= (type wildcard-value) String) (= (type compare-value) String) (>= (.length wildcard-value) 2))
     (cond
-      (and 
-        (.startsWith wildcard-value "*") 
-	(.endsWith wildcard-value "*")) (let [search-term (.substring wildcard-value 1 (- (.length wildcard-value) 1))]
-                                          (if (= -1 (.indexOf compare-value search-term)) false true))
-	(.startsWith wildcard-value "*") (let [search-term (.substring wildcard-value 1 (.length wildcard-value))]
-                                           (if (= -1 (.indexOf compare-value search-term)) false true))
-	(.endsWith wildcard-value "*") (let [search-term (.substring wildcard-value 0 (- (.length wildcard-value) 1))]
+     (and 
+      (.startsWith wildcard-value "*") 
+      (.endsWith wildcard-value "*")) (let [search-term (.substring wildcard-value 1 (- (.length wildcard-value) 1))]
+                                        (if (= -1 (.indexOf compare-value search-term)) false true))
+      (.startsWith wildcard-value "*") (let [search-term (.substring wildcard-value 1 (.length wildcard-value))]
                                          (if (= -1 (.indexOf compare-value search-term)) false true))
-        :else (= wildcard-value compare-value))
+      (.endsWith wildcard-value "*") (let [search-term (.substring wildcard-value 0 (- (.length wildcard-value) 1))]
+                                       (if (= -1 (.indexOf compare-value search-term)) false true))
+      :else (= wildcard-value compare-value))
     (= wildcard-value compare-value)))
 
 (defn get-ranged-vector
@@ -45,10 +47,10 @@
   (if (re-find #"^-?\d+\.?\d*$" s)
     (read-string s)))
 
- (defn abs  
-   "Returns absolute value of a number"
-   [x]
-   (if (< x 0) (- x) x)) 
+(defn abs  
+  "Returns absolute value of a number"
+  [x]
+  (if (< x 0) (- x) x)) 
 
 (defn get-service-result
   "Creates standard service result from supplied result-code and message"
@@ -59,8 +61,8 @@
   "Executes statements in given order one after another, the first which returns non-nil response
    will be returned (it's result), if every statement returns nil response, returns nil on the end."
   ([fn]
-    `(let [result# ~fn]
-       result#))
+     `(let [result# ~fn]
+        result#))
   ([fn & fns]
-    `(let [result# ~fn]
-       (if (nil? result#) (pipeline-statements ~@fns) result#))))
+     `(let [result# ~fn]
+        (if (nil? result#) (pipeline-statements ~@fns) result#))))

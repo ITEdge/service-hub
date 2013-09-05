@@ -24,11 +24,11 @@
   "Macro which returns service-result, arguments include
    service function, optional validator function and optional locking object"
   ([service-fns]
-   (service-validator service-fns nil))
+     (service-validator service-fns nil))
   ([validator-fn service-fns ]
-   (service-validator service-fns validator-fn))
+     (service-validator service-fns validator-fn))
   ([validator-fn service-fns lock-object]
-   `(locking ~lock-object ~(service-validator validator-fn service-fns))))
+     `(locking ~lock-object ~(service-validator validator-fn service-fns))))
 
 (defmacro authorize-service-call
   "Macro which authorizes service-call"
@@ -58,117 +58,117 @@
   (let [from (or from 0)
         to (or to (dec total))]
     (-> (assoc response :from from)
-      (assoc :to (if (> (inc to) total) (dec total) to))
-      (assoc :total total))))
+        (assoc :to (if (> (inc to) total) (dec total) to))
+        (assoc :total total))))
 
 (defn scaffold-find-call
   "Scaffolds service find call"
   ([handler id]
-   (get-success-response
-     (handle-find-entity handler id)))
+     (get-success-response
+      (handle-find-entity handler id)))
   ([handler validator id]
-   (get-service-result
-     (validate-find-entity validator id)
-     (scaffold-find-call handler id)))
+     (get-service-result
+      (validate-find-entity validator id)
+      (scaffold-find-call handler id)))
   ([handler validator authorizator id auth]
-   (authorize-service-call
-     (authorize-find-call authorizator id auth)
-     (scaffold-find-call handler validator id))))
+     (authorize-service-call
+      (authorize-find-call authorizator id auth)
+      (scaffold-find-call handler validator id))))
 
 (defn scaffold-delete-call
   "Scaffolds service delete call"
   ([handler id]
-   (get-success-delete-response
-     (handle-delete-entity handler id)))
+     (get-success-delete-response
+      (handle-delete-entity handler id)))
   ([handler validator id]
-   (get-service-result
-     (validate-delete-entity validator id)
-     (scaffold-delete-call handler id)))
+     (get-service-result
+      (validate-delete-entity validator id)
+      (scaffold-delete-call handler id)))
   ([handler validator authorizator id auth]
-   (authorize-service-call
-     (authorize-delete-call authorizator id auth)
-     (scaffold-delete-call handler validator id))))
+     (authorize-service-call
+      (authorize-delete-call authorizator id auth)
+      (scaffold-delete-call handler validator id))))
 
 (defn scaffold-update-call
   "Scaffolds service update call"
   ([handler attributes]
-   (get-success-response
-     (handle-update-entity handler attributes)))
+     (get-success-response
+      (handle-update-entity handler attributes)))
   ([handler validator attributes]
-   (get-service-result
-     (validate-update-entity validator attributes)
-     (scaffold-update-call handler attributes)))
+     (get-service-result
+      (validate-update-entity validator attributes)
+      (scaffold-update-call handler attributes)))
   ([handler validator authorizator attributes auth]
-   (authorize-service-call
-     (authorize-update-call authorizator attributes auth)
-     (scaffold-update-call handler validator attributes))))
+     (authorize-service-call
+      (authorize-update-call authorizator attributes auth)
+      (scaffold-update-call handler validator attributes))))
 
 (defn scaffold-add-call
   "Scaffolds service add call"
   ([handler attributes]
-   (get-success-response
-     (handle-add-entity handler attributes)))
+     (get-success-response
+      (handle-add-entity handler attributes)))
   ([handler validator attributes]
-   (get-service-result
-     (validate-add-entity validator attributes)
-     (scaffold-add-call handler attributes)))
+     (get-service-result
+      (validate-add-entity validator attributes)
+      (scaffold-add-call handler attributes)))
   ([handler validator authorizator attributes auth]
-   (authorize-service-call
-     (authorize-add-call authorizator attributes auth)
-     (scaffold-add-call handler validator attributes))))
+     (authorize-service-call
+      (authorize-add-call authorizator attributes auth)
+      (scaffold-add-call handler validator attributes))))
 
 (defn scaffold-list-call
   "Scaffolds service list call"
   ([handler criteria sort-attrs from to]
-   (-> (get-success-response 
-         (handle-list-entities handler criteria sort-attrs from to))
-       (assoc-range-info from to (handle-count-entities handler criteria))))
+     (-> (get-success-response 
+          (handle-list-entities handler criteria sort-attrs from to))
+         (assoc-range-info from to (handle-count-entities handler criteria))))
   ([handler validator criteria sort-attrs from to]
-   (get-service-result
-     (validate-list-entities validator criteria sort-attrs from to)
-     (scaffold-list-call handler criteria sort-attrs from to)))
+     (get-service-result
+      (validate-list-entities validator criteria sort-attrs from to)
+      (scaffold-list-call handler criteria sort-attrs from to)))
   ([handler validator authorizator criteria sort-attrs from to auth]
-   (authorize-service-call
-     (authorize-list-call authorizator criteria auth)
-     (let [criteria (restrict-list-call authorizator criteria auth)]
-       (scaffold-list-call handler validator criteria sort-attrs from to)))))
+     (authorize-service-call
+      (authorize-list-call authorizator criteria auth)
+      (let [criteria (restrict-list-call authorizator criteria auth)]
+        (scaffold-list-call handler validator criteria sort-attrs from to)))))
 
 (defn scaffold-service
   "Scaffolds simple service implementation with mandatory handler and optional
    validator and authorizator arguments"
   ([handler]
-   (reify PEntityService
-     (find-entity [_ id auth]
-       (scaffold-find-call handler id))
-     (delete-entity [_ id auth]
-       (scaffold-delete-call handler id))
-     (update-entity [_ attributes auth]
-       (scaffold-update-call handler attributes))
-     (add-entity [_ attributes auth]
-       (scaffold-add-call handler attributes))
-     (list-entities [_ criteria sort-attrs from to auth]
-       (scaffold-list-call handler criteria sort-attrs from to))))
+     (reify PEntityService
+       (find-entity [_ id auth]
+         (scaffold-find-call handler id))
+       (delete-entity [_ id auth]
+         (scaffold-delete-call handler id))
+       (update-entity [_ attributes auth]
+         (scaffold-update-call handler attributes))
+       (add-entity [_ attributes auth]
+         (scaffold-add-call handler attributes))
+       (list-entities [_ criteria sort-attrs from to auth]
+         (scaffold-list-call handler criteria sort-attrs from to))))
   ([handler validator]
-   (reify PEntityService
-     (find-entity [_ id auth]
-       (scaffold-find-call handler validator id))
-     (delete-entity [_ id auth]
-       (scaffold-delete-call handler validator id))
-     (update-entity [_ attributes auth]
-       (scaffold-update-call handler validator attributes))
-     (add-entity [_ attributes auth]
-       (scaffold-add-call handler validator attributes))
-     (list-entities [_ criteria sort-attrs from to auth]
-       (scaffold-list-call handler validator criteria sort-attrs from to))))
+     (reify PEntityService
+       (find-entity [_ id auth]
+         (scaffold-find-call handler validator id))
+       (delete-entity [_ id auth]
+         (scaffold-delete-call handler validator id))
+       (update-entity [_ attributes auth]
+         (scaffold-update-call handler validator attributes))
+       (add-entity [_ attributes auth]
+         (scaffold-add-call handler validator attributes))
+       (list-entities [_ criteria sort-attrs from to auth]
+         (scaffold-list-call handler validator criteria sort-attrs from to))))
   ([handler validator authorizator]
-   (reify PEntityService
-     (find-entity [_ id auth]
-       (scaffold-find-call handler validator authorizator id auth))
-     (delete-entity [_ id auth]
-       (scaffold-delete-call handler validator authorizator id auth))
-     (update-entity [_ attributes auth]
-       (scaffold-update-call handler validator authorizator attributes auth))
-     (add-entity [_ attributes auth]
-       (scaffold-add-call handler validator authorizator attributes auth))
-     (list-entities [_ criteria sort-attrs from to auth]
-       (scaffold-list-call handler validator authorizator criteria sort-attrs from to auth)))))
+     (reify PEntityService
+       (find-entity [_ id auth]
+         (scaffold-find-call handler validator authorizator id auth))
+       (delete-entity [_ id auth]
+         (scaffold-delete-call handler validator authorizator id auth))
+       (update-entity [_ attributes auth]
+         (scaffold-update-call handler validator authorizator attributes auth))
+       (add-entity [_ attributes auth]
+         (scaffold-add-call handler validator authorizator attributes auth))
+       (list-entities [_ criteria sort-attrs from to auth]
+         (scaffold-list-call handler validator authorizator criteria sort-attrs from to auth)))))

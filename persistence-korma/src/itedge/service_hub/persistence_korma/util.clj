@@ -85,10 +85,10 @@
   [entity attributes]
   (let [fields (select-keys attributes (:fields entity))
         relations (select-keys attributes (keys (:rel entity)))]
-	  (db/transaction
+    (db/transaction
      (let [id (extract-id (korma/insert entity
-			    (korma/values fields)
-			    (korma/relations (construct-relations relations))))]
+                                        (korma/values fields)
+                                        (korma/relations (construct-relations relations))))]
        (when-not (db/is-rollback?) (assoc attributes (:pk entity) id))))))
 
 (defn update-entity-helper
@@ -97,19 +97,19 @@
   (let [fields (select-keys attributes (:fields entity))
         relations (select-keys attributes (keys (:rel entity)))]
     (db/transaction
-      (korma/update entity
-        (korma/set-fields fields)
-        (korma/where {(:pk entity) ((:pk entity) attributes)})
-        (korma/relations (construct-relations relations)))
-      (when-not (db/is-rollback?) attributes))))
+     (korma/update entity
+                   (korma/set-fields fields)
+                   (korma/where {(:pk entity) ((:pk entity) attributes)})
+                   (korma/relations (construct-relations relations)))
+     (when-not (db/is-rollback?) attributes))))
 
 (defn delete-entity-helper
   "Deletes entity along with all relations, wraps operation in transaction"
   [entity id]
   (db/transaction
-    (korma/delete entity
-      (korma/where {(:pk entity) id})
-      (korma/add-deletion-of-relations))))
+   (korma/delete entity
+                 (korma/where {(:pk entity) id})
+                 (korma/add-deletion-of-relations))))
 
 (defn criteria-helper
   "Adds fields and relations criteria to query"
@@ -118,23 +118,23 @@
         fields-criteria (select-keys criteria fields)
         relations-criteria (select-keys criteria (keys (:rel ent)))]
     (-> query
-      ((fn [query]
-        (if (empty? fields-criteria)
-          query
-          (korma/where query (construct-and-list fields-criteria)))))
-      ((fn [query]
-        (if (empty? relations-criteria)
-          query
-          (korma/where-relations query (translate-relation-expressions relations-criteria))))))))
+        ((fn [query]
+           (if (empty? fields-criteria)
+             query
+             (korma/where query (construct-and-list fields-criteria)))))
+        ((fn [query]
+           (if (empty? relations-criteria)
+             query
+             (korma/where-relations query (translate-relation-expressions relations-criteria))))))))
 
 (defn sorting-helper
   "Adds sorting attributes to query"
   [{:keys [ent] :as query} sorting-attrs] 
   (let [fields (conj (:fields ent) (:pk ent))]
     (reduce (fn [acc item]
-      (if (util/in? fields (first item))
-        (korma/order acc (first item) (second item))
-        acc)) query sorting-attrs)))
+              (if (util/in? fields (first item))
+                (korma/order acc (first item) (second item))
+                acc)) query sorting-attrs)))
 
 (defn offset-helper
   "Adds offset attribute to query"
@@ -154,5 +154,5 @@
   "Like korma.core/select, but selects only single (first result) from result set"
   [ent & body]
   `(let [query# (-> (korma/select* ~ent)
-                  ~@body)]
+                    ~@body)]
      (first (korma/exec query#))))

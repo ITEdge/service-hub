@@ -35,7 +35,7 @@
   (defn create-status-code
     "Translate status from service result to valid http status code"
     [response {return-code :return-code}]
-      (assoc response :status (return-code results-to-codes))))
+    (assoc response :status (return-code results-to-codes))))
 
 (defn list-route
   "Returns route for list calls - 'GET path/' (uses sorting parameters from request if present).
