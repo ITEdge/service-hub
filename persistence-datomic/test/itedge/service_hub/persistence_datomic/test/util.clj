@@ -58,11 +58,12 @@
     (is (= q-result-2-ent {:item/name "item 1" :item/count 7 :item/price 20.3 :item/codes #{"C1" "C2"}}))))
 
 (comment (deftest test-list-entities-with-history
-           (let [id (first (first (q '[:find ?e :where [?e :item/name "item 2"]] (db conn))))]
-             (is (= (list-entities-with-history (db conn) item-fieldset {:db/id id} :db/id nil nil nil)
+           (let [id (first (first (q '[:find ?e :where [?e :item/name "item 4"]] (db conn))))]
+             (is (= (list-entities-with-history (db conn) item-fieldset nil :db/id [[:t :ASC]] nil nil)
                     [{} {}])))))
 
 (shutdown false)
+
 
 
 

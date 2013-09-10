@@ -28,7 +28,8 @@
   (resolve-id-value [id] nil))
 
 (defn create-handler [conn fieldset]
-  (reify PEntityHandler
+  (reify 
+    PEntityHandler
     (handle-find-entity [_ id]
       (get-entity-data id fieldset (db conn)))
     (handle-exist-entity [_ id]
@@ -44,4 +45,9 @@
     (handle-count-entities [_ criteria]
       (datomic-util/count-entities (db conn) fieldset (util/update-map-values criteria resolve-id-value) :db/id))
     (handle-get-unique-identifier [_]
-      :db/id)))
+      :db/id)
+    PEntityHistoryHandler
+    (handle-list-entity-history [_ id criteria sort-attrs from to]
+      (datomic-util/list-entities-with-history (db conn) fieldset (assoc criteria :db/id id) sort-attrs from to))
+    (handle-find-entity-history [_ entity-id history-id]
+      (datomic-util/get-entity-history (db conn) fieldset entity-id history-id))))

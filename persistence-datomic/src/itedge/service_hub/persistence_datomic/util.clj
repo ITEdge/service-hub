@@ -1,5 +1,6 @@
 (ns itedge.service-hub.persistence-datomic.util
-  (:require [datomic.api :as d :refer [q db entity transact tempid resolve-tempid as-of history]]
+  (:require [datomic.api :as d :refer [q db entity transact tempid resolve-tempid 
+                                       as-of history tx->t t->tx]]
             [clojure.set :as set]
             [itedge.service-hub.core.util :as util]))
 
@@ -30,6 +31,11 @@
   [db fieldset id]
   (when (exist-entity? db fieldset id)
     (convert-entity-to-map (entity db id))))
+
+(defn get-entity-history
+  "Gets entity with specified minimal fieldset, id and history id, if no such entity exists, returns nil"
+  [db fieldset id history-id]
+  (get-entity-history (as-of db (t->tx history-id)) fieldset id))
 
 (defn- not-compare-w [v c-v]
   (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
@@ -123,12 +129,24 @@
                            (concat where-clauses)))]
     [query query-args]))
 
+(defn- map-entities
+  [entity-tx-ids db]
+  (map (fn [[e-id tx-id]] 
+         (convert-entity-to-map (entity (as-of db tx-id) e-id)))
+       entity-tx-ids))
+
+(defn- map-history-entities
+  [entity-tx-ids db]
+  (map (fn [[e-id tx-id]]
+         (-> (convert-entity-to-map (entity (as-of db tx-id) e-id))
+             (assoc :t (tx->t tx-id))))
+       entity-tx-ids))
+
 (defn list-entities-p
-  "Processes list entities query in specified db, sorts and paginates the result"
-  [db [query query-args] sort-attrs from to]
+  "Processes list entities query in specified db, with map-fn, sorts and paginates the result"
+  [db map-fn [query query-args] sort-attrs from to]
   (let [entity-tx-ids (apply q query query-args)
-        unsorted-entities (map (fn [r] (convert-entity-to-map (entity (as-of db (second r)) (first r)))) 
-                               (sort entity-tx-ids))]
+        unsorted-entities (map-fn (sort entity-tx-ids) db)]
     (if (> (count unsorted-entities) 0)
       (if (seq sort-attrs)
         (util/get-ranged-vector (util/sort-maps unsorted-entities sort-attrs) from to)
@@ -138,10 +156,10 @@
 (defn list-entities
   "Lists entities with given minimal fieldset, criteria, sorting and paging in specified db"
   [db fieldset criteria id-key sort-attrs from to]
-  (list-entities-p db (list-entities-q-a db fieldset criteria id-key) sort-attrs from to))
+  (list-entities-p db map-entities (list-entities-q-a db fieldset criteria id-key) sort-attrs from to))
 
-(comment (defn list-entities-with-history
-           ""
-           [db fieldset criteria id-key sort-attrs from to]
-           (list-entities-p db (list-entities-q-a (history db) fieldset criteria id-key) sort-attrs from to)))
+(defn list-entities-with-history
+  "Lists entities (including history under :t key) with given minimal fieldset, criteria, sorting and paging in specified db"
+  [db fieldset criteria id-key sort-attrs from to]
+  (list-entities-p db map-history-entities (list-entities-q-a (history db) fieldset criteria id-key) sort-attrs from to))
 

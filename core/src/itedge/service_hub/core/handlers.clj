@@ -21,7 +21,7 @@
 
 (defprotocol PEntityHistoryHandler
   "A protocol for history enabled entity handlers"
-  (handle-list-entity-history [this id criteria sort from to]
+  (handle-list-entity-history [this id criteria sort-attrs from to]
     "Lists all history states (snapshots - map of all entity attributes along with snapshot time and transaction id) of entity values,
      optionaly with criteria, optionaly sort them and restrict their range")
   (handle-find-entity-history [this entity-id history-id]
