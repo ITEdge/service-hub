@@ -43,7 +43,7 @@
         e (handle-find-entity datomic-handler id)]
     (is (= (handle-count-entities datomic-handler {:db/id id}) 1))
     (is (= (handle-count-entities datomic-handler {:db/id (:item/linked e)}) 1))
-    (is (= (handle-count-entities datomic-handler {:item/linked (:item/linked e)}) 2))))
+    (is (= (handle-count-entities datomic-handler {:item/linked (:item/linked e)}) 1))))
 
 (deftest test-list-entities
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 2"]] (db conn))))
@@ -51,6 +51,19 @@
         q-result (handle-list-entities datomic-handler {:item/linked (:item/linked e) :item/name "item 2"} nil nil nil)
         q-result-1 (first q-result)]
     (is (= q-result-1 e))))
+
+(deftest test-list-entity-history
+  (let [id (first (first (q '[:find ?e :where [?e :item/name "item 3"]] (db conn))))
+        updated-entity (handle-update-entity datomic-handler {:db/id id :item/count 10})
+        [former-e later-e] (handle-list-entity-history datomic-handler id nil [[:t :ASC]] nil nil)]
+    (is (= (dissoc later-e :t) updated-entity))
+    (is (= (:item/count former-e) 9))))
+
+(deftest test-find-entity-history
+  (let [id (first (first (q '[:find ?e :where [?e :item/name "item 3"]] (db conn))))
+        [former-e later-e] (handle-list-entity-history datomic-handler id nil [[:t :ASC]] nil nil)]
+    (is (= (dissoc former-e :t) (handle-find-entity-history datomic-handler id (:t former-e))))
+    (is (= (dissoc later-e :t) (handle-find-entity-history datomic-handler id (:t later-e))))))
 
 (shutdown false)
 
