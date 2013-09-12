@@ -14,14 +14,14 @@
 (defn- extract-single [result]
   (first (first result)))
 
-(defn- add-fieldset [query entity-symbol transaction-symbol fieldset]
-  (reduce (fn [acc item] (conj acc [entity-symbol item '_ transaction-symbol])) query fieldset))
+(defn- add-fieldset [query entity-symbol fieldset]
+  (reduce (fn [acc item] (conj acc [entity-symbol item])) query fieldset))
 
 (defn exist-entity? 
   "Determines if entity with given minimal fieldset and id exists in database"
   [db fieldset id]
   (let [query (-> '[:find ?eid :in $ ?eid :where [?eid]]
-                  (add-fieldset '?eid '?t fieldset))] 
+                  (add-fieldset '?eid fieldset))] 
     (if-let [e (extract-single (q query db id))]
       true
       false)))
@@ -35,7 +35,7 @@
 (defn get-entity-history
   "Gets entity with specified minimal fieldset, id and history id, if no such entity exists, returns nil"
   [db fieldset id history-id]
-  (get-entity-history (as-of db (t->tx history-id)) fieldset id))
+  (get-entity (as-of db (t->tx history-id)) fieldset id))
 
 (defn- not-compare-w [v c-v]
   (if (coll? v) (not (util/in? v c-v)) (not (util/wildcard-compare v c-v))))
@@ -65,11 +65,11 @@
                      :lteq [(conj func-body <=)]
                      :value [(conj func-body compare-w)]}))) 
 
-(defn- add-criteria [query entity-symbol transaction-symbol criteria]
+(defn- add-criteria [query entity-symbol criteria]
   (reduce (fn [acc [k v]]
             (let [item-symbol (gensym "?item")]
               (-> acc 
-                  (conj [entity-symbol k item-symbol transaction-symbol]) 
+                  (conj [entity-symbol k item-symbol]) 
                   (conj (get-function-expression v item-symbol))))) query criteria))
 
 (defn- unrestricted-fields [fieldset criteria]
@@ -100,14 +100,13 @@
   "Counts entities with given minimal fieldset in specified db"
   [db fieldset criteria id-key]
   (let [entity-symbol '?e
-        transaction-symbol '?t
         count-clause (-> '() (conj entity-symbol) (conj 'count))
         in-clause (if (contains? criteria id-key) [:in '$ entity-symbol] [:in '$])
         query-args (if (contains? criteria id-key) (list db (id-key criteria)) (list db))
         criteria (dissoc criteria id-key)
         where-clauses (-> [:where]
-                          (add-fieldset entity-symbol transaction-symbol (unrestricted-fields fieldset criteria))
-                          (add-criteria entity-symbol transaction-symbol criteria))
+                          (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
+                          (add-criteria entity-symbol criteria))
         query (into [] (-> [:find count-clause]
                            (concat in-clause)
                            (concat where-clauses)))
@@ -117,23 +116,38 @@
 (defn- list-entities-q-a
   [db fieldset criteria id-key]
   (let [entity-symbol '?e
+        in-clause (if (contains? criteria id-key) [:in '$ entity-symbol] [:in '$])
+        query-args (if (contains? criteria id-key) (list db (id-key criteria)) (list db))
+        criteria (dissoc criteria id-key)
+        where-clauses (-> [:where]
+                          (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
+                          (add-criteria entity-symbol criteria))
+        query (into [] (-> [:find entity-symbol]
+                           (concat in-clause)
+                           (concat where-clauses)))]
+    [query query-args]))
+
+(defn- list-history-entities-q-a
+  [db fieldset criteria id-key]
+  (let [entity-symbol '?e
         transaction-symbol '?t
         in-clause (if (contains? criteria id-key) [:in '$ entity-symbol] [:in '$])
         query-args (if (contains? criteria id-key) (list db (id-key criteria)) (list db))
         criteria (dissoc criteria id-key)
         where-clauses (-> [:where]
-                          (add-fieldset entity-symbol transaction-symbol (unrestricted-fields fieldset criteria))
-                          (add-criteria entity-symbol transaction-symbol criteria))
+                          (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
+                          (add-criteria entity-symbol criteria)
+                          (conj [entity-symbol '_ '_ transaction-symbol]))
         query (into [] (-> [:find entity-symbol transaction-symbol]
                            (concat in-clause)
                            (concat where-clauses)))]
     [query query-args]))
 
 (defn- map-entities
-  [entity-tx-ids db]
-  (map (fn [[e-id tx-id]] 
-         (convert-entity-to-map (entity (as-of db tx-id) e-id)))
-       entity-tx-ids))
+  [entity-ids db]
+  (map (fn [[e-id]] 
+         (convert-entity-to-map (entity db e-id)))
+       entity-ids))
 
 (defn- map-history-entities
   [entity-tx-ids db]
@@ -145,8 +159,8 @@
 (defn list-entities-p
   "Processes list entities query in specified db, with map-fn, sorts and paginates the result"
   [db map-fn [query query-args] sort-attrs from to]
-  (let [entity-tx-ids (apply q query query-args)
-        unsorted-entities (map-fn (sort entity-tx-ids) db)]
+  (let [query-result (apply q query query-args)
+        unsorted-entities (map-fn (sort query-result) db)]
     (if (> (count unsorted-entities) 0)
       (if (seq sort-attrs)
         (util/get-ranged-vector (util/sort-maps unsorted-entities sort-attrs) from to)
@@ -161,5 +175,5 @@
 (defn list-entities-with-history
   "Lists entities (including history under :t key) with given minimal fieldset, criteria, sorting and paging in specified db"
   [db fieldset criteria id-key sort-attrs from to]
-  (list-entities-p db map-history-entities (list-entities-q-a (history db) fieldset criteria id-key) sort-attrs from to))
+  (list-entities-p db map-history-entities (list-history-entities-q-a (history db) fieldset criteria id-key) sort-attrs from to))
 

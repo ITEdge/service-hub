@@ -57,10 +57,18 @@
     (is (= (count q-result-3) 1))
     (is (= q-result-2-ent {:item/name "item 1" :item/count 7 :item/price 20.3 :item/codes #{"C1" "C2"}}))))
 
-(comment (deftest test-list-entities-with-history
-           (let [id (first (first (q '[:find ?e :where [?e :item/name "item 4"]] (db conn))))]
-             (is (= (list-entities-with-history (db conn) item-fieldset nil :db/id [[:t :ASC]] nil nil)
-                    [{} {}])))))
+(deftest test-list-entities-with-history
+  (let [id (first (first (q '[:find ?e :where [?e :item/name "item 3"]] (db conn))))
+        updated-entity (update-entity conn {:db/id id :item/count 10})
+        [former-e later-e] (list-entities-with-history (db conn) item-fieldset {:db/id id} :db/id [[:t :ASC]] nil nil)]
+    (is (= (dissoc later-e :t) updated-entity))
+    (is (= (:item/count former-e) 9))))
+
+(deftest test-get-entity-history
+  (let [id (first (first (q '[:find ?e :where [?e :item/name "item 3"]] (db conn))))
+        [former-e later-e] (list-entities-with-history (db conn) item-fieldset {:db/id id} :db/id [[:t :ASC]] nil nil)]
+    (is (= (dissoc former-e :t) (get-entity-history (db conn) item-fieldset id (:t former-e))))
+    (is (= (dissoc later-e :t) (get-entity-history (db conn) item-fieldset id (:t later-e))))))
 
 (shutdown false)
 
