@@ -133,6 +133,36 @@
       (let [criteria (restrict-list-call authorizator criteria auth)]
         (scaffold-list-call handler validator criteria sort-attrs from to)))))
 
+(defn scaffold-get-history-call
+  "Scaffolds service get-history call"
+  ([handler entity-id history-id]
+     (get-success-response
+      (handle-find-entity-history handler entity-id history-id)))
+  ([handler validator entity-id history-id]
+     (get-service-result
+      (validate-find-entity-history validator entity-id history-id)
+      (scaffold-get-history-call handler entity-id history-id)))
+  ([handler validator authorizator entity-id history-id auth]
+     (authorize-service-call
+      (authorize-find-history-call authorizator entity-id history-id auth)
+      (scaffold-get-history-call handler validator entity-id history-id))))
+
+(defn scaffold-list-entity-history-call
+  "Scaffolds service list-entity-history call"
+  ([handler id criteria sort-attrs from to]
+     (-> (get-success-response
+          (handle-list-entity-history handler id criteria sort-attrs from to))
+         (assoc-range-info from to (handle-count-entity-history handler id criteria))))
+  ([handler validator id criteria sort-attrs from to]
+     (get-service-result
+      (validate-list-entity-history validator id criteria sort-attrs from to)
+      (scaffold-list-entity-history-call handler id criteria sort-attrs from to)))
+  ([handler validator authorizator id criteria sort-attrs from to auth]
+     (authorize-service-call
+      (authorize-list-history-call authorizator id criteria auth)
+      (let [criteria (restrict-list-history-call authorizator id criteria auth)]
+        (scaffold-list-entity-history-call handler validator id criteria sort-attrs from to)))))
+
 (defn scaffold-service
   "Scaffolds simple service implementation with mandatory handler and optional
    validator and authorizator arguments"
