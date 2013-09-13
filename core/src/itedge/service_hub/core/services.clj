@@ -3,13 +3,21 @@
 (defprotocol PEntityService
   "A protocol for entity services"
   (find-entity [this id auth] 
-    "Find entity by primary id")
+    "Finds entity by primary id")
   (delete-entity [this id auth] 
-    "Delete entity by primary id")
+    "Deletes entity by primary id")
   (update-entity [this attributes auth] 
-    "Update existing entity")
+    "Updates existing entity")
   (add-entity [this attributes auth] 
-    "Persist new entity")
+    "Persists new entity")
   (list-entities [this criteria sort-attrs from to auth] 
-    "List all entities, optionally with criteria, optionaly sort them and restrict their range"))
+    "Lists all entities, optionally with criteria, optionally sorts them and restricts their range"))
+
+(defprotocol PEntityHistoryService
+  "A protocol for entity-history services"
+  (find-entity-history [this entity-id history-id auth]
+    "Finds entity-history by entity primary id and history id")
+  (list-entity-history [this id criteria sort-attrs from to auth]
+    "Lists history of entity with given id, optionally with criteria, optionally sorts them and
+     restricts their range"))
 

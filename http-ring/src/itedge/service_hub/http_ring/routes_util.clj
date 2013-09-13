@@ -127,41 +127,6 @@
                      (post-processing-fn)))
                 (create-status-code result)))))
 
-(defn list-history-route
-  "Returns route for list history calls - 'GET path/:id/history/' (uses sorting parameters from request if present).
-   Takes the root path, list-history function, one argument post-processing function and one 
-   argument content-write function as arguments. List-history function takes five optional arguments, entity id,
-   sorting vector, lower range bound, upper range bound and authentication map."
-  [path list-history-fn post-processing-fn content-write parse-numeric-id?]
-  (GET [(str path "/:id/history/"), :id #"[0-9]+"] [id :as request]
-       (let [range (parse-range-headers request)
-             sort-args (parse-sort-args :sortBy (:params request))
-             auth (:auth request)
-             result (list-history-fn (if parse-numeric-id? (util/parse-number id) id) sort-args (:from range) (:to range) auth)]
-         (-> (content-write 
-           (-> (:message result)
-               (post-processing-fn)))
-             (create-status-code result)
-             (create-content-range-headers result)))))
-
-(defn query-history-route
-  "Returns route for query-history calls - 'GET path/:id/history' (uses querying and sorting parameters from request if present).
-   Takes the root path, query-history function, one argument post-processing function and one 
-   argument content-write function as arguments. Query-history function takes six optional arguments, entity id,
-   criteria query map, sorting vector, lower range bound, upper range bound and authentication map."
-  [path query-history-fn post-processing-fn content-write parse-numeric-id?]
-  (GET [(str path "/:id/history"), :id #"[0-9]+"] [id :as request]
-       (let [range (parse-range-headers request)
-             params (:params request)
-             sort-args (parse-sort-args :sortBy params)
-             auth (:auth request)
-             result (query-history-fn (if parse-numeric-id? (util/parse-number id) id) params sort-args (:from range) (:to range) auth)]
-         (-> (content-write
-              (-> (:message result)
-                  (post-processing-fn)))
-             (create-status-code result)
-             (create-content-range-headers result)))))
-
 (defn scaffold-crud-routes
   "Creates standard REST routes for all CRUD operations, taking root path, entity service
    content-read, content-write functions, entity primary key and parse-bumeric-id? flag as parameters. 
@@ -182,6 +147,81 @@
       (list-route path (partial list-entities entity-service nil) (:list post-fns identity) content-write)
       (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write parse-numeric-id?)
       (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
+      (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write parse-numeric-id?)     
+      (create-route path (partial add-entity entity-service) (:create post-fns identity) content-read content-write)
+      (delete-route path (partial delete-entity entity-service) (:delete post-fns identity) content-write parse-numeric-id?))))
+
+(defn list-history-route
+  "Returns route for list history calls - 'GET path/:id/history/' (uses sorting parameters from request if present).
+   Takes the root path, list-history function, one argument post-processing function and one 
+   argument content-write function as arguments. List-history function takes five optional arguments, entity id,
+   sorting vector, lower range bound, upper range bound and authentication map."
+  [path list-history-fn post-processing-fn content-write parse-numeric-id?]
+  (GET [(str path "/:id/history/"), :id #"[0-9]+"] [id :as request]
+       (let [range (parse-range-headers request)
+             sort-args (parse-sort-args :sortBy (:params request))
+             auth (:auth request)
+             result (list-history-fn (if parse-numeric-id? (util/parse-number id) id) sort-args (:from range) (:to range) auth)]
+         (-> (content-write 
+           (-> (:message result)
+               (post-processing-fn)))
+             (create-status-code result)
+             (create-content-range-headers result)))))
+
+(defn get-history-route
+  "Returns route for get history calls - 'GET path/:id/history/:id'. Takes the root path, get-history function, 
+   one argument post-processing function, one argument content-write function and parse-numeric-id? flag as arguments. 
+   Get-history function takes three arguments, entity id, history id and optional authentication map."
+  [path get-history-fn post-processing-fn content-write parse-numeric-id?]
+  (GET [(str path "/:id/history/:hid"), :id #"[0-9]+", :hid #"[0-9]+"] [id hid :as request]
+       (let [auth (:auth request)
+             result (get-history-fn (if parse-numeric-id? (util/parse-number id) id) (if parse-numeric-id? (util/parse-number hid) hid)  auth)]
+         (-> (content-write 
+              (-> (:message result)
+                  (post-processing-fn)))
+             (create-status-code result)))))
+
+(defn query-history-route
+  "Returns route for query-history calls - 'GET path/:id/history' (uses querying and sorting parameters from request if present).
+   Takes the root path, query-history function, one argument post-processing function and one 
+   argument content-write function as arguments. Query-history function takes six optional arguments, entity id,
+   criteria query map, sorting vector, lower range bound, upper range bound and authentication map."
+  [path query-history-fn post-processing-fn content-write parse-numeric-id?]
+  (GET [(str path "/:id/history"), :id #"[0-9]+"] [id :as request]
+       (let [range (parse-range-headers request)
+             params (:params request)
+             sort-args (parse-sort-args :sortBy params)
+             auth (:auth request)
+             result (query-history-fn (if parse-numeric-id? (util/parse-number id) id) params sort-args (:from range) (:to range) auth)]
+         (-> (content-write
+              (-> (:message result)
+                  (post-processing-fn)))
+             (create-status-code result)
+             (create-content-range-headers result)))))
+
+(defn scaffold-crud-history-routes
+  "Creates standard REST routes for all CRUD operations, taking root path, entity service
+   content-read, content-write functions, entity primary key and parse-bumeric-id? flag as parameters. 
+   Created paths for according http verbs are: 
+   1. List   - 'GET path/' (uses sorting parameters from request if present)
+   2. Get    - 'GET path/:id'
+   3. Query  - 'GET path' (uses querying and sorting parameters from request if present)
+   4. Update - 'PUT path/:id'
+   5. Create - 'POST path/'
+   6. Delete - 'DELETE path/:id'
+   Map with post-processing functions for each path (:list :get :query :update :create :delete) can be 
+   optionally passed in as fifth argument, corresponding functions will be then called with
+   result of the entity service call"
+  ([path entity-service pk content-read content-write parse-numeric-id?]
+     (scaffold-crud-routes path entity-service pk content-read content-write parse-numeric-id? nil))
+  ([path entity-service pk content-read content-write parse-numeric-id? post-fns]
+     (routes 
+      (list-route path (partial list-entities entity-service nil) (:list post-fns identity) content-write)
+      (list-history-route path (partial list-entity-history entity-service nil) (:list-history post-fns identity) content-write)
+      (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write parse-numeric-id?)
+      (get-history-route path (partial find-entity-history entity-service) (:get-history post-fns identity) content-write parse-numeric-id?)
+      (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
+      (query-history-route path (partial list-entity-history entity-service) (:query-history post-fns identity) content-write)
       (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write parse-numeric-id?)     
       (create-route path (partial add-entity entity-service) (:create post-fns identity) content-read content-write)
       (delete-route path (partial delete-entity entity-service) (:delete post-fns identity) content-write parse-numeric-id?))))
