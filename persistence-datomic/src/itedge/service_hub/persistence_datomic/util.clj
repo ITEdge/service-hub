@@ -96,23 +96,6 @@
   (when (exist-entity? (db conn) fieldset id)
     (:db/id (entity (:db-after @(transact conn [[:db.fn/retractEntity id]])) id))))
 
-(defn count-entities
-  "Counts entities with given minimal fieldset in specified db"
-  [db fieldset criteria id-key]
-  (let [entity-symbol '?e
-        count-clause (-> '() (conj entity-symbol) (conj 'count))
-        in-clause (if (contains? criteria id-key) [:in '$ entity-symbol] [:in '$])
-        query-args (if (contains? criteria id-key) (list db (id-key criteria)) (list db))
-        criteria (dissoc criteria id-key)
-        where-clauses (-> [:where]
-                          (add-fieldset entity-symbol (unrestricted-fields fieldset criteria))
-                          (add-criteria entity-symbol criteria))
-        query (into [] (-> [:find count-clause]
-                           (concat in-clause)
-                           (concat where-clauses)))
-        result (extract-single (apply q query query-args))]
-    (if result result 0)))
-
 (defn- list-entities-q-a
   [db fieldset criteria id-key]
   (let [entity-symbol '?e
@@ -126,6 +109,18 @@
                            (concat in-clause)
                            (concat where-clauses)))]
     [query query-args]))
+
+(defn count-entities
+  "Counts entities with given minimal fieldset in specified db"
+  [db fieldset criteria id-key]
+  (let [[query args] (list-entities-q-a db fieldset criteria id-key)]
+    (count (apply q query args))))
+
+(defn- map-entities
+  [entity-ids db]
+  (map (fn [[e-id]] 
+         (convert-entity-to-map (entity db e-id)))
+       entity-ids))
 
 (defn- list-history-entities-q-a
   [db fieldset criteria id-key]
@@ -143,11 +138,11 @@
                            (concat where-clauses)))]
     [query query-args]))
 
-(defn- map-entities
-  [entity-ids db]
-  (map (fn [[e-id]] 
-         (convert-entity-to-map (entity db e-id)))
-       entity-ids))
+(defn count-history-entities
+  "Counts entities histories with given minimal fieldset in specified db"
+  [db fieldset criteria id-key]
+  (let [[query args] (list-history-entities-q-a (history db) fieldset criteria id-key)]
+    (count (apply q query args))))
 
 (defn- map-history-entities
   [entity-tx-ids db]

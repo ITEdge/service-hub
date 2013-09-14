@@ -48,6 +48,11 @@
       :db/id)
     PEntityHistoryHandler
     (handle-list-entity-history [_ id criteria sort-attrs from to]
-      (datomic-util/list-entities-with-history (db conn) fieldset (assoc criteria :db/id id) :db/id sort-attrs from to))
+      (datomic-util/list-entities-with-history 
+       (db conn) fieldset (assoc (util/update-map-values criteria resolve-id-value) :db/id (resolve-id-value id)) 
+       :db/id sort-attrs from to))
     (handle-find-entity-history [_ entity-id history-id]
-      (datomic-util/get-entity-history (db conn) fieldset entity-id history-id))))
+      (datomic-util/get-entity-history (db conn) fieldset (resolve-id-value entity-id) history-id))
+    (handle-count-entity-history [_ id criteria]
+      (datomic-util/count-history-entities 
+       (db conn) fieldset (util/update-map-values criteria resolve-id-value) (resolve-id-value id)))))
