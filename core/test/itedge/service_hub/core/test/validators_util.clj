@@ -34,49 +34,49 @@
          (util/get-service-result :conflict "one or more fields don't belong to the allowed fieldset")))
 
 (deftest test-validate-insert-update-relations
-  (is (= (validate-insert-update-relations {:item 1} :item test-entity-handler) nil))
-  (is (= (validate-insert-update-relations {:item 4} :thing test-entity-handler) nil))
-  (is (= (validate-insert-update-relations {:item 4} :item test-entity-handler)
+  (is (= (validate-insert-update-relations {:item 1} :item test-entity-handler nil) nil))
+  (is (= (validate-insert-update-relations {:item 4} :thing test-entity-handler nil) nil))
+  (is (= (validate-insert-update-relations {:item 4} :item test-entity-handler nil)
          (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))))
 
 (deftest test-validate-mandatory-insert-relations
-  (is (= (validate-mandatory-insert-relations {:item 1} :item test-entity-handler) nil))
-  (is (= (validate-mandatory-insert-relations {:item 4} :thing test-entity-handler)
+  (is (= (validate-mandatory-insert-relations {:item 1} :item test-entity-handler nil) nil))
+  (is (= (validate-mandatory-insert-relations {:item 4} :thing test-entity-handler nil)
          (util/get-service-result :conflict "mandatory related entity is not present")))
-  (is (= (validate-mandatory-insert-relations {:item 4} :item test-entity-handler)
+  (is (= (validate-mandatory-insert-relations {:item 4} :item test-entity-handler nil)
          (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))))
 
 (deftest test-validate-unique-fields
-  (is (= (validate-unique-fields {:id 1 :name "test-entity-one"} test-entity-handler #{:name}) nil))
-  (is (= (validate-unique-fields {:id 2 :name "test-entity-one"} test-entity-handler #{:name})
+  (is (= (validate-unique-fields {:id 1 :name "test-entity-one"} test-entity-handler nil #{:name}) nil))
+  (is (= (validate-unique-fields {:id 2 :name "test-entity-one"} test-entity-handler nil #{:name})
          (util/get-service-result :conflict "one or more unique values in entity are not unique among other entities"))))
 
 (deftest test-validate-entity-still-there
-  (is (= (validate-entity-still-there {:id 1 :name "changed"} test-entity-handler) nil))
-  (is (= (validate-entity-still-there {:name "changed"} test-entity-handler)
+  (is (= (validate-entity-still-there {:id 1 :name "changed"} test-entity-handler nil) nil))
+  (is (= (validate-entity-still-there {:name "changed"} test-entity-handler nil)
          (util/get-service-result :conflict "requested entity does not posses id, which is required to check it's availability")))
-  (is (= (validate-entity-still-there {:id 4 :name "changed"} test-entity-handler)
+  (is (= (validate-entity-still-there {:id 4 :name "changed"} test-entity-handler nil)
          (util/get-service-result :gone "requested entity does not exist anymore, it was probably deleted by another user"))))
 
 (deftest test-validate-entity-present
-  (is (= (validate-entity-present 1 test-entity-handler) nil))
-  (is (= (validate-entity-present 4 test-entity-handler) 
+  (is (= (validate-entity-present 1 test-entity-handler nil) nil))
+  (is (= (validate-entity-present 4 test-entity-handler nil) 
          (util/get-service-result :not-found "entity with requested id was not found"))))
 
 (deftest test-validate-delete-relations
-  (is (= (validate-delete-relations 1 :thing test-entity-handler) nil))
-  (is (= (validate-delete-relations 4 :things test-entity-handler) nil))
-  (is (= (validate-delete-relations 7 :thing test-entity-handler) 
+  (is (= (validate-delete-relations 1 :thing test-entity-handler nil) nil))
+  (is (= (validate-delete-relations 4 :things test-entity-handler nil) nil))
+  (is (= (validate-delete-relations 7 :thing test-entity-handler nil) 
          (util/get-service-result :conflict "entity requested for deletion has mandatory relations to other entities")))
-  (is (= (validate-delete-relations 1 :things test-entity-handler)
+  (is (= (validate-delete-relations 1 :things test-entity-handler nil)
          (util/get-service-result :conflict "entity requested for deletion has mandatory relations to other entities"))))
 
 (deftest test-validate-list-range
-  (is (= (validate-list-range 0 5 nil test-entity-handler) nil))
-  (is (= (validate-list-range 0 5 {:name "test-entity-one"} test-entity-handler) nil))
-  (is (= (validate-list-range 10 15 nil test-entity-handler) 
+  (is (= (validate-list-range 0 5 nil test-entity-handler nil) nil))
+  (is (= (validate-list-range 0 5 {:name "test-entity-one"} test-entity-handler nil) nil))
+  (is (= (validate-list-range 10 15 nil test-entity-handler nil) 
          (util/get-service-result :bad-range "Total count of given entities in system is smaller than lower range restriction")))
-  (is (= (validate-list-range 10 5 nil test-entity-handler)
+  (is (= (validate-list-range 10 5 nil test-entity-handler nil)
          (util/get-service-result :conflict "Wrong range selection, 'from' must be smaller then 'to' boundary"))))
 
 (deftest test-validate-implication-insert
@@ -87,23 +87,23 @@
          (util/get-service-result :conflict "Implicative properties relation was violated"))))
 
 (deftest test-validate-implication-update
-  (is (= (validate-implication-update {:id 1 :thing 4 :name "changed"} test-entity-handler :thing :name) nil))
-  (is (= (validate-implication-update {:id 1 :thing 9} test-entity-handler :thing :name) nil))
-  (is (= (validate-implication-update {:id 1 :thing 11} test-entity-handler :thing :linked)
+  (is (= (validate-implication-update {:id 1 :thing 4 :name "changed"} test-entity-handler nil :thing :name) nil))
+  (is (= (validate-implication-update {:id 1 :thing 9} test-entity-handler nil :thing :name) nil))
+  (is (= (validate-implication-update {:id 1 :thing 11} test-entity-handler nil :thing :linked)
          (util/get-service-result :conflict "Implicative properties relation was violated")))
-  (is (= (validate-implication-update {:id 4 :thing 12} test-entity-handler :thing :linked)
+  (is (= (validate-implication-update {:id 4 :thing 12} test-entity-handler nil :thing :linked)
          (util/get-service-result :conflict "Implicative properties relation was violated"))))
 
 (deftest test-validate-date-times-chronology
   (is (= (validate-date-times-chronology {:first "2013-06-28T22:15:00.000+02:00" 
-                                          :second "2013-07-01T22:15:00.000+02:00"} test-entity-handler :first :second) nil))
+                                          :second "2013-07-01T22:15:00.000+02:00"} test-entity-handler nil :first :second) nil))
   (is (= (validate-date-times-chronology {:id 1 :created "2013-06-28T22:15:00.000+02:00"} 
-                                         test-entity-handler :created :updated) nil))
+                                         test-entity-handler nil :created :updated) nil))
   (is (= (validate-date-times-chronology {:first "2013-07-28T22:15:00.000+02:00" 
-                                          :second "2013-07-01T22:15:00.000+02:00"} test-entity-handler :first :second)
+                                          :second "2013-07-01T22:15:00.000+02:00"} test-entity-handler nil :first :second)
          (util/get-service-result :conflict "there is conflict in date-times chronology"))) 
   (is (= (validate-date-times-chronology {:id 1 :created "2013-07-28T22:15:00.000+02:00"} 
-                                         test-entity-handler :created :updated)
+                                         test-entity-handler nil :created :updated)
          (util/get-service-result :conflict "there is conflict in date-times chronology"))))
 
 (deftest test-validate-iso-date-times

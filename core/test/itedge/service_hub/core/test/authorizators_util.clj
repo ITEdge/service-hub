@@ -29,8 +29,8 @@
   (is (= (entity-contains? [1 2 3] 7) false)))
 
 (deftest test-user-relations-on-entity?
-  (is (= (user-relations-on-entity? {:id 1 :username "test" :roles #{:user :admin}} 1 :users test-entity-handler) nil))
-  (is (= (user-relations-on-entity? {:id 7 :username "test" :roles #{:user}} 1 :users test-entity-handler)
+  (is (= (user-relations-on-entity? {:id 1 :username "test" :roles #{:user :admin}} 1 :users test-entity-handler nil) nil))
+  (is (= (user-relations-on-entity? {:id 7 :username "test" :roles #{:user}} 1 :users test-entity-handler nil)
          (util/get-service-result :not-authorized "user is not authorized to operate on this entity"))))
 
 (deftest test-contains-roles?

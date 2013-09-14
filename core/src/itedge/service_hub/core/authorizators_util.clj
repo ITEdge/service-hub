@@ -34,8 +34,8 @@
 
 (defn user-relations-on-entity?
   "Checks user relations on entity"
-  [{id :id} entity-id user-key entity-handler]
-  (when-let [entity (handle-find-entity entity-handler entity-id)]
+  [{id :id} entity-id user-key entity-handler entity-datasource]
+  (when-let [entity (handle-find-entity entity-handler entity-id entity-datasource)]
     (when (not (entity-contains? (user-key entity) id))
       (util/get-service-result :not-authorized "user is not authorized to operate on this entity"))))
 

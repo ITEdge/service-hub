@@ -63,142 +63,142 @@
 
 (defn scaffold-find-call
   "Scaffolds service find call"
-  ([handler id]
+  ([handler id datasource]
      (get-success-response
-      (handle-find-entity handler id)))
-  ([handler validator id]
+      (handle-find-entity handler id datasource)))
+  ([handler validator id datasource]
      (get-service-result
-      (validate-find-entity validator id)
-      (scaffold-find-call handler id)))
-  ([handler validator authorizator id auth]
+      (validate-find-entity validator id datasource)
+      (scaffold-find-call handler id datasource)))
+  ([handler validator authorizator id datasource auth]
      (authorize-service-call
-      (authorize-find-call authorizator id auth)
-      (scaffold-find-call handler validator id))))
+      (authorize-find-call authorizator id datasource auth)
+      (scaffold-find-call handler validator id datasource))))
 
 (defn scaffold-delete-call
   "Scaffolds service delete call"
-  ([handler id]
+  ([handler id datasource]
      (get-success-delete-response
-      (handle-delete-entity handler id)))
-  ([handler validator id]
+      (handle-delete-entity handler id datasource)))
+  ([handler validator id datasource]
      (get-service-result
-      (validate-delete-entity validator id)
-      (scaffold-delete-call handler id)))
-  ([handler validator authorizator id auth]
+      (validate-delete-entity validator id datasource)
+      (scaffold-delete-call handler id datasource)))
+  ([handler validator authorizator id datasource auth]
      (authorize-service-call
-      (authorize-delete-call authorizator id auth)
-      (scaffold-delete-call handler validator id))))
+      (authorize-delete-call authorizator id datasource auth)
+      (scaffold-delete-call handler validator id datasource))))
 
 (defn scaffold-update-call
   "Scaffolds service update call"
-  ([handler attributes]
+  ([handler attributes datasource]
      (get-success-response
-      (handle-update-entity handler attributes)))
-  ([handler validator attributes]
+      (handle-update-entity handler attributes datasource)))
+  ([handler validator attributes datasource]
      (get-service-result
-      (validate-update-entity validator attributes)
-      (scaffold-update-call handler attributes)))
-  ([handler validator authorizator attributes auth]
+      (validate-update-entity validator attributes datasource)
+      (scaffold-update-call handler attributes datasource)))
+  ([handler validator authorizator attributes datasource auth]
      (authorize-service-call
-      (authorize-update-call authorizator attributes auth)
-      (scaffold-update-call handler validator attributes))))
+      (authorize-update-call authorizator attributes datasource auth)
+      (scaffold-update-call handler validator attributes datasource))))
 
 (defn scaffold-add-call
   "Scaffolds service add call"
-  ([handler attributes]
+  ([handler attributes datasource]
      (get-success-response
-      (handle-add-entity handler attributes)))
-  ([handler validator attributes]
+      (handle-add-entity handler attributes datasource)))
+  ([handler validator attributes datasource]
      (get-service-result
-      (validate-add-entity validator attributes)
-      (scaffold-add-call handler attributes)))
-  ([handler validator authorizator attributes auth]
+      (validate-add-entity validator attributes datasource)
+      (scaffold-add-call handler attributes datasource)))
+  ([handler validator authorizator attributes datasource auth]
      (authorize-service-call
-      (authorize-add-call authorizator attributes auth)
-      (scaffold-add-call handler validator attributes))))
+      (authorize-add-call authorizator attributes datasource auth)
+      (scaffold-add-call handler validator attributes datasource))))
 
 (defn scaffold-list-call
   "Scaffolds service list call"
-  ([handler criteria sort-attrs from to]
+  ([handler criteria sort-attrs from to datasource]
      (-> (get-success-response 
-          (handle-list-entities handler criteria sort-attrs from to))
-         (assoc-range-info from to (handle-count-entities handler criteria))))
-  ([handler validator criteria sort-attrs from to]
+          (handle-list-entities handler criteria sort-attrs from to datasource))
+         (assoc-range-info from to (handle-count-entities handler criteria datasource))))
+  ([handler validator criteria sort-attrs from to datasource]
      (get-service-result
-      (validate-list-entities validator criteria sort-attrs from to)
-      (scaffold-list-call handler criteria sort-attrs from to)))
-  ([handler validator authorizator criteria sort-attrs from to auth]
+      (validate-list-entities validator criteria sort-attrs from to datasource)
+      (scaffold-list-call handler criteria sort-attrs from to datasource)))
+  ([handler validator authorizator criteria sort-attrs from to datasource auth]
      (authorize-service-call
-      (authorize-list-call authorizator criteria auth)
-      (let [criteria (restrict-list-call authorizator criteria auth)]
-        (scaffold-list-call handler validator criteria sort-attrs from to)))))
+      (authorize-list-call authorizator criteria datasource auth)
+      (let [criteria (restrict-list-call authorizator criteria datasource auth)]
+        (scaffold-list-call handler validator criteria sort-attrs from to datasource)))))
 
 (defn scaffold-get-history-call
   "Scaffolds service get-history call"
-  ([handler entity-id history-id]
+  ([handler entity-id history-id datasource]
      (get-success-response
-      (handle-find-entity-history handler entity-id history-id)))
-  ([handler validator entity-id history-id]
+      (handle-find-entity-history handler entity-id history-id datasource)))
+  ([handler validator entity-id history-id datasource]
      (get-service-result
-      (validate-find-entity-history validator entity-id history-id)
-      (scaffold-get-history-call handler entity-id history-id)))
-  ([handler validator authorizator entity-id history-id auth]
+      (validate-find-entity-history validator entity-id history-id datasource)
+      (scaffold-get-history-call handler entity-id history-id datasource)))
+  ([handler validator authorizator entity-id history-id datasource auth]
      (authorize-service-call
-      (authorize-find-history-call authorizator entity-id history-id auth)
-      (scaffold-get-history-call handler validator entity-id history-id))))
+      (authorize-find-history-call authorizator entity-id history-id datasource auth)
+      (scaffold-get-history-call handler validator entity-id history-id datasource))))
 
 (defn scaffold-list-entity-history-call
   "Scaffolds service list-entity-history call"
-  ([handler id criteria sort-attrs from to]
+  ([handler id criteria sort-attrs from to datasource]
      (-> (get-success-response
-          (handle-list-entity-history handler id criteria sort-attrs from to))
-         (assoc-range-info from to (handle-count-entity-history handler id criteria))))
-  ([handler validator id criteria sort-attrs from to]
+          (handle-list-entity-history handler id criteria sort-attrs from to datasource))
+         (assoc-range-info from to (handle-count-entity-history handler id criteria datasource))))
+  ([handler validator id criteria sort-attrs from to datasource]
      (get-service-result
-      (validate-list-entity-history validator id criteria sort-attrs from to)
-      (scaffold-list-entity-history-call handler id criteria sort-attrs from to)))
-  ([handler validator authorizator id criteria sort-attrs from to auth]
+      (validate-list-entity-history validator id criteria sort-attrs from to datasource)
+      (scaffold-list-entity-history-call handler id criteria sort-attrs from to datasource)))
+  ([handler validator authorizator id criteria sort-attrs from to datasource auth]
      (authorize-service-call
-      (authorize-list-history-call authorizator id criteria auth)
-      (let [criteria (restrict-list-history-call authorizator id criteria auth)]
-        (scaffold-list-entity-history-call handler validator id criteria sort-attrs from to)))))
+      (authorize-list-history-call authorizator id criteria datasource auth)
+      (let [criteria (restrict-list-history-call authorizator id criteria datasource auth)]
+        (scaffold-list-entity-history-call handler validator id criteria sort-attrs from to datasource)))))
 
 (defn scaffold-service
   "Scaffolds simple service implementation with mandatory handler and optional
    validator and authorizator arguments"
-  ([handler]
+  ([handler get-datasource-fn]
      (reify PEntityService
        (find-entity [_ id auth]
-         (scaffold-find-call handler id))
+         (scaffold-find-call handler id (get-datasource-fn)))
        (delete-entity [_ id auth]
-         (scaffold-delete-call handler id))
+         (scaffold-delete-call handler id (get-datasource-fn)))
        (update-entity [_ attributes auth]
-         (scaffold-update-call handler attributes))
+         (scaffold-update-call handler attributes (get-datasource-fn)))
        (add-entity [_ attributes auth]
-         (scaffold-add-call handler attributes))
+         (scaffold-add-call handler attributes (get-datasource-fn)))
        (list-entities [_ criteria sort-attrs from to auth]
-         (scaffold-list-call handler criteria sort-attrs from to))))
-  ([handler validator]
+         (scaffold-list-call handler criteria sort-attrs from to (get-datasource-fn)))))
+  ([handler validator get-datasource-fn]
      (reify PEntityService
        (find-entity [_ id auth]
-         (scaffold-find-call handler validator id))
+         (scaffold-find-call handler validator id (get-datasource-fn)))
        (delete-entity [_ id auth]
-         (scaffold-delete-call handler validator id))
+         (scaffold-delete-call handler validator id (get-datasource-fn)))
        (update-entity [_ attributes auth]
-         (scaffold-update-call handler validator attributes))
+         (scaffold-update-call handler validator attributes (get-datasource-fn)))
        (add-entity [_ attributes auth]
-         (scaffold-add-call handler validator attributes))
+         (scaffold-add-call handler validator attributes (get-datasource-fn)))
        (list-entities [_ criteria sort-attrs from to auth]
-         (scaffold-list-call handler validator criteria sort-attrs from to))))
-  ([handler validator authorizator]
+         (scaffold-list-call handler validator criteria sort-attrs from to (get-datasource-fn)))))
+  ([handler validator authorizator get-datasource-fn]
      (reify PEntityService
        (find-entity [_ id auth]
-         (scaffold-find-call handler validator authorizator id auth))
+         (scaffold-find-call handler validator authorizator id (get-datasource-fn) auth))
        (delete-entity [_ id auth]
-         (scaffold-delete-call handler validator authorizator id auth))
+         (scaffold-delete-call handler validator authorizator id (get-datasource-fn) auth))
        (update-entity [_ attributes auth]
-         (scaffold-update-call handler validator authorizator attributes auth))
+         (scaffold-update-call handler validator authorizator attributes (get-datasource-fn) auth))
        (add-entity [_ attributes auth]
-         (scaffold-add-call handler validator authorizator attributes auth))
+         (scaffold-add-call handler validator authorizator attributes (get-datasource-fn) auth))
        (list-entities [_ criteria sort-attrs from to auth]
-         (scaffold-list-call handler validator authorizator criteria sort-attrs from to auth)))))
+         (scaffold-list-call handler validator authorizator criteria sort-attrs from to (get-datasource-fn) auth)))))

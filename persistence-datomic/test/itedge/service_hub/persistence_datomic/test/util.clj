@@ -62,7 +62,8 @@
         updated-entity (update-entity conn {:db/id id :item/count 10})
         [former-e later-e] (list-entities-with-history (db conn) item-fieldset {:db/id id} :db/id [[:t :ASC]] nil nil)]
     (is (= (dissoc later-e :t) updated-entity))
-    (is (= (:item/count former-e) 9))))
+    (is (= (:item/count former-e) 9))
+    (is (= (count-history-entities (db conn) item-fieldset {:db/id id} :db/id) 2))))
 
 (deftest test-get-entity-history
   (let [id (first (first (q '[:find ?e :where [?e :item/name "item 3"]] (db conn))))

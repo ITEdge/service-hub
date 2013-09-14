@@ -18,24 +18,24 @@
   (find-entity [_ id auth]
     (services-util/get-service-result
      (services-util/get-success-response
-      (handle-find-entity test-handler id))))
+      (handle-find-entity test-handler id nil))))
   (delete-entity [_ id auth]
     (services-util/get-service-result
      (services-util/get-success-delete-response 
-      (handle-delete-entity test-handler id))))
+      (handle-delete-entity test-handler id nil))))
   (update-entity [_ attributes auth]
     (services-util/get-service-result
      (services-util/get-success-response 
-      (handle-update-entity test-handler attributes))))
+      (handle-update-entity test-handler attributes nil))))
   (add-entity [_ attributes auth]
     (services-util/get-service-result
      (services-util/get-success-response 
-      (handle-add-entity test-handler attributes))))
+      (handle-add-entity test-handler attributes nil))))
   (list-entities [_ criteria sort-attrs from to auth]
     (services-util/get-service-result
      (-> (services-util/get-success-response 
-          (handle-list-entities test-handler criteria sort-attrs from to))
-         (services-util/assoc-range-info from to (handle-count-entities test-handler criteria))))))
+          (handle-list-entities test-handler criteria sort-attrs from to nil))
+         (services-util/assoc-range-info from to (handle-count-entities test-handler criteria nil))))))
 
 (def test-service (->TestService test-handler))
 

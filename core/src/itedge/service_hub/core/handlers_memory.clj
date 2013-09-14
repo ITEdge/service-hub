@@ -44,33 +44,33 @@
   (let [index (atom 0)
         entity-map (atom (index-data data id-key index))]
     (reify PEntityHandler
-      (handle-find-entity [_ id]
+      (handle-find-entity [_ id _]
         (get @entity-map id))
-      (handle-exist-entity [_ id]
+      (handle-exist-entity [_ id _]
 	(if (get @entity-map id)
 	  true
 	  false))
-      (handle-delete-entity [_ id]
+      (handle-delete-entity [_ id _]
 	(when (get @entity-map id)
           (swap! entity-map dissoc id)
           id))
-      (handle-update-entity [_ attributes]
+      (handle-update-entity [_ attributes _]
 	(when-let [id (id-key attributes)]
           (when-let [old (get @entity-map id)]
             (let [updated (merge old attributes)]
               (swap! entity-map assoc id updated)
               updated)))) 
-      (handle-add-entity [_ attributes]
+      (handle-add-entity [_ attributes _]
         (let [next-id (swap! index inc)
               attributes (assoc attributes id-key next-id)]
           (swap! entity-map assoc next-id attributes)
           attributes))
-      (handle-list-entities [_ criteria sort-attrs from to]
+      (handle-list-entities [_ criteria sort-attrs from to _]
         (let [extract-fn (fn [e-map crit] (map second (filter (filter-fn crit) @e-map)))]
           (if (seq sort-attrs)
             (util/get-ranged-vector (util/sort-maps (extract-fn entity-map criteria) sort-attrs) from to)
             (util/get-ranged-vector (sort-by id-key (extract-fn entity-map criteria)) from to))))
-      (handle-count-entities [_ criteria]
+      (handle-count-entities [_ criteria _]
         (count (filter (filter-fn criteria) @entity-map)))
       (handle-get-unique-identifier [_]
 	id-key))))
