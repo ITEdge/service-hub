@@ -63,142 +63,200 @@
 
 (defn scaffold-find-call
   "Scaffolds service find call"
-  ([handler id datasource]
+  ([handler id db-value]
      (get-success-response
-      (handle-find-entity handler id datasource)))
-  ([handler validator id datasource]
+      (handle-find-entity handler id db-value)))
+  ([handler validator id db-value]
      (get-service-result
-      (validate-find-entity validator id datasource)
-      (scaffold-find-call handler id datasource)))
-  ([handler validator authorizator id datasource auth]
+      (validate-find-entity validator id db-value)
+      (scaffold-find-call handler id db-value)))
+  ([handler validator authorizator id db-value auth]
      (authorize-service-call
-      (authorize-find-call authorizator id datasource auth)
-      (scaffold-find-call handler validator id datasource))))
+      (authorize-find-call authorizator id db-value auth)
+      (scaffold-find-call handler validator id db-value))))
 
 (defn scaffold-delete-call
   "Scaffolds service delete call"
-  ([handler id datasource]
+  ([handler id db-handle]
      (get-success-delete-response
-      (handle-delete-entity handler id datasource)))
-  ([handler validator id datasource]
+      (handle-delete-entity handler id db-handle)))
+  ([handler validator id db-value db-handle]
      (get-service-result
-      (validate-delete-entity validator id datasource)
-      (scaffold-delete-call handler id datasource)))
-  ([handler validator authorizator id datasource auth]
+      (validate-delete-entity validator id db-value)
+      (scaffold-delete-call handler id db-handle)))
+  ([handler validator authorizator id db-value db-handle auth]
      (authorize-service-call
-      (authorize-delete-call authorizator id datasource auth)
-      (scaffold-delete-call handler validator id datasource))))
+      (authorize-delete-call authorizator id db-value auth)
+      (scaffold-delete-call handler validator id db-value db-handle))))
 
 (defn scaffold-update-call
   "Scaffolds service update call"
-  ([handler attributes datasource]
+  ([handler attributes db-handle]
      (get-success-response
-      (handle-update-entity handler attributes datasource)))
-  ([handler validator attributes datasource]
+      (handle-update-entity handler attributes db-handle)))
+  ([handler validator attributes db-value db-handle]
      (get-service-result
-      (validate-update-entity validator attributes datasource)
-      (scaffold-update-call handler attributes datasource)))
-  ([handler validator authorizator attributes datasource auth]
+      (validate-update-entity validator attributes db-value)
+      (scaffold-update-call handler attributes db-handle)))
+  ([handler validator authorizator attributes db-value db-handle auth]
      (authorize-service-call
-      (authorize-update-call authorizator attributes datasource auth)
-      (scaffold-update-call handler validator attributes datasource))))
+      (authorize-update-call authorizator attributes db-value auth)
+      (scaffold-update-call handler validator attributes db-value db-handle))))
 
 (defn scaffold-add-call
   "Scaffolds service add call"
-  ([handler attributes datasource]
+  ([handler attributes db-handle]
      (get-success-response
-      (handle-add-entity handler attributes datasource)))
-  ([handler validator attributes datasource]
+      (handle-add-entity handler attributes db-handle)))
+  ([handler validator attributes db-value db-handle]
      (get-service-result
-      (validate-add-entity validator attributes datasource)
-      (scaffold-add-call handler attributes datasource)))
-  ([handler validator authorizator attributes datasource auth]
+      (validate-add-entity validator attributes db-value)
+      (scaffold-add-call handler attributes db-handle)))
+  ([handler validator authorizator attributes db-value db-handle auth]
      (authorize-service-call
-      (authorize-add-call authorizator attributes datasource auth)
-      (scaffold-add-call handler validator attributes datasource))))
+      (authorize-add-call authorizator attributes db-value auth)
+      (scaffold-add-call handler validator attributes db-value db-handle))))
 
 (defn scaffold-list-call
   "Scaffolds service list call"
-  ([handler criteria sort-attrs from to datasource]
+  ([handler criteria sort-attrs from to db-value]
      (-> (get-success-response 
-          (handle-list-entities handler criteria sort-attrs from to datasource))
-         (assoc-range-info from to (handle-count-entities handler criteria datasource))))
-  ([handler validator criteria sort-attrs from to datasource]
+          (handle-list-entities handler criteria sort-attrs from to db-value))
+         (assoc-range-info from to (handle-count-entities handler criteria db-value))))
+  ([handler validator criteria sort-attrs from to db-value]
      (get-service-result
-      (validate-list-entities validator criteria sort-attrs from to datasource)
-      (scaffold-list-call handler criteria sort-attrs from to datasource)))
-  ([handler validator authorizator criteria sort-attrs from to datasource auth]
+      (validate-list-entities validator criteria sort-attrs from to db-value)
+      (scaffold-list-call handler criteria sort-attrs from to db-value)))
+  ([handler validator authorizator criteria sort-attrs from to db-value auth]
      (authorize-service-call
-      (authorize-list-call authorizator criteria datasource auth)
-      (let [criteria (restrict-list-call authorizator criteria datasource auth)]
-        (scaffold-list-call handler validator criteria sort-attrs from to datasource)))))
+      (authorize-list-call authorizator criteria db-value auth)
+      (let [criteria (restrict-list-call authorizator criteria db-value auth)]
+        (scaffold-list-call handler validator criteria sort-attrs from to db-value)))))
 
 (defn scaffold-get-history-call
   "Scaffolds service get-history call"
-  ([handler entity-id history-id datasource]
+  ([handler entity-id history-id db-value]
      (get-success-response
-      (handle-find-entity-history handler entity-id history-id datasource)))
-  ([handler validator entity-id history-id datasource]
+      (handle-find-entity-history handler entity-id history-id db-value)))
+  ([handler validator entity-id history-id db-value]
      (get-service-result
-      (validate-find-entity-history validator entity-id history-id datasource)
-      (scaffold-get-history-call handler entity-id history-id datasource)))
-  ([handler validator authorizator entity-id history-id datasource auth]
+      (validate-find-entity-history validator entity-id history-id db-value)
+      (scaffold-get-history-call handler entity-id history-id db-value)))
+  ([handler validator authorizator entity-id history-id db-value auth]
      (authorize-service-call
-      (authorize-find-history-call authorizator entity-id history-id datasource auth)
-      (scaffold-get-history-call handler validator entity-id history-id datasource))))
+      (authorize-find-history-call authorizator entity-id history-id db-value auth)
+      (scaffold-get-history-call handler validator entity-id history-id db-value))))
 
 (defn scaffold-list-entity-history-call
   "Scaffolds service list-entity-history call"
-  ([handler id criteria sort-attrs from to datasource]
+  ([handler id criteria sort-attrs from to db-value]
      (-> (get-success-response
-          (handle-list-entity-history handler id criteria sort-attrs from to datasource))
-         (assoc-range-info from to (handle-count-entity-history handler id criteria datasource))))
-  ([handler validator id criteria sort-attrs from to datasource]
+          (handle-list-entity-history handler id criteria sort-attrs from to db-value))
+         (assoc-range-info from to (handle-count-entity-history handler id criteria db-value))))
+  ([handler validator id criteria sort-attrs from to db-value]
      (get-service-result
-      (validate-list-entity-history validator id criteria sort-attrs from to datasource)
-      (scaffold-list-entity-history-call handler id criteria sort-attrs from to datasource)))
-  ([handler validator authorizator id criteria sort-attrs from to datasource auth]
+      (validate-list-entity-history validator id criteria sort-attrs from to db-value)
+      (scaffold-list-entity-history-call handler id criteria sort-attrs from to db-value)))
+  ([handler validator authorizator id criteria sort-attrs from to db-value auth]
      (authorize-service-call
-      (authorize-list-history-call authorizator id criteria datasource auth)
-      (let [criteria (restrict-list-history-call authorizator id criteria datasource auth)]
-        (scaffold-list-entity-history-call handler validator id criteria sort-attrs from to datasource)))))
+      (authorize-list-history-call authorizator id criteria db-value auth)
+      (let [criteria (restrict-list-history-call authorizator id criteria db-value auth)]
+        (scaffold-list-entity-history-call handler validator id criteria sort-attrs from to db-value)))))
 
 (defn scaffold-service
   "Scaffolds simple service implementation with mandatory handler and optional
    validator and authorizator arguments"
-  ([handler get-datasource-fn]
+  ([handler db-handle get-db-value-fn]
      (reify PEntityService
        (find-entity [_ id auth]
-         (scaffold-find-call handler id (get-datasource-fn)))
+         (scaffold-find-call handler id (get-db-value-fn)))
        (delete-entity [_ id auth]
-         (scaffold-delete-call handler id (get-datasource-fn)))
+         (scaffold-delete-call handler id db-handle))
        (update-entity [_ attributes auth]
-         (scaffold-update-call handler attributes (get-datasource-fn)))
+         (scaffold-update-call handler attributes db-handle))
        (add-entity [_ attributes auth]
-         (scaffold-add-call handler attributes (get-datasource-fn)))
+         (scaffold-add-call handler attributes db-handle))
        (list-entities [_ criteria sort-attrs from to auth]
-         (scaffold-list-call handler criteria sort-attrs from to (get-datasource-fn)))))
-  ([handler validator get-datasource-fn]
+         (scaffold-list-call handler criteria sort-attrs from to (get-db-value-fn)))))
+  ([handler validator db-handle get-db-value-fn]
      (reify PEntityService
        (find-entity [_ id auth]
-         (scaffold-find-call handler validator id (get-datasource-fn)))
+         (scaffold-find-call handler validator id (get-db-value-fn)))
        (delete-entity [_ id auth]
-         (scaffold-delete-call handler validator id (get-datasource-fn)))
+         (scaffold-delete-call handler validator id (get-db-value-fn) db-handle))
        (update-entity [_ attributes auth]
-         (scaffold-update-call handler validator attributes (get-datasource-fn)))
+         (scaffold-update-call handler validator attributes (get-db-value-fn) db-handle))
        (add-entity [_ attributes auth]
-         (scaffold-add-call handler validator attributes (get-datasource-fn)))
+         (scaffold-add-call handler validator attributes (get-db-value-fn) db-handle))
        (list-entities [_ criteria sort-attrs from to auth]
-         (scaffold-list-call handler validator criteria sort-attrs from to (get-datasource-fn)))))
-  ([handler validator authorizator get-datasource-fn]
+         (scaffold-list-call handler validator criteria sort-attrs from to (get-db-value-fn)))))
+  ([handler validator authorizator db-handle get-db-value-fn]
      (reify PEntityService
        (find-entity [_ id auth]
-         (scaffold-find-call handler validator authorizator id (get-datasource-fn) auth))
+         (scaffold-find-call handler validator authorizator id (get-db-value-fn) auth))
        (delete-entity [_ id auth]
-         (scaffold-delete-call handler validator authorizator id (get-datasource-fn) auth))
+         (scaffold-delete-call handler validator authorizator id (get-db-value-fn) db-handle auth))
        (update-entity [_ attributes auth]
-         (scaffold-update-call handler validator authorizator attributes (get-datasource-fn) auth))
+         (scaffold-update-call handler validator authorizator attributes (get-db-value-fn) db-handle auth))
        (add-entity [_ attributes auth]
-         (scaffold-add-call handler validator authorizator attributes (get-datasource-fn) auth))
+         (scaffold-add-call handler validator authorizator attributes (get-db-value-fn) db-handle auth))
        (list-entities [_ criteria sort-attrs from to auth]
-         (scaffold-list-call handler validator authorizator criteria sort-attrs from to (get-datasource-fn) auth)))))
+         (scaffold-list-call handler validator authorizator criteria sort-attrs from to (get-db-value-fn) auth)))))
+
+(defn scaffold-history-enabled-service
+  "Scaffolds simple history-enabled service implementation with mandatory handler 
+   and optional validator and authorizator arguments"
+  ([handler db-handle get-db-value-fn]
+     (reify 
+       PEntityService
+       (find-entity [_ id auth]
+         (scaffold-find-call handler id (get-db-value-fn)))
+       (delete-entity [_ id auth]
+         (scaffold-delete-call handler id db-handle))
+       (update-entity [_ attributes auth]
+         (scaffold-update-call handler attributes db-handle))
+       (add-entity [_ attributes auth]
+         (scaffold-add-call handler attributes db-handle))
+       (list-entities [_ criteria sort-attrs from to auth]
+         (scaffold-list-call handler criteria sort-attrs from to (get-db-value-fn)))
+       PEntityHistoryService
+       (find-entity-history [_ entity-id history-id auth]
+         (scaffold-get-history-call handler entity-id history-id (get-db-value-fn)))
+       (list-entity-history [_ id criteria sort-attrs from to auth]
+         (scaffold-list-entity-history-call handler id criteria sort-attrs from to (get-db-value-fn)))))
+  ([handler validator db-handle get-db-value-fn]
+     (reify 
+       PEntityService
+       (find-entity [_ id auth]
+         (scaffold-find-call handler validator id (get-db-value-fn)))
+       (delete-entity [_ id auth]
+         (scaffold-delete-call handler validator id (get-db-value-fn) db-handle))
+       (update-entity [_ attributes auth]
+         (scaffold-update-call handler validator attributes (get-db-value-fn) db-handle))
+       (add-entity [_ attributes auth]
+         (scaffold-add-call handler validator attributes (get-db-value-fn) db-handle))
+       (list-entities [_ criteria sort-attrs from to auth]
+         (scaffold-list-call handler validator criteria sort-attrs from to (get-db-value-fn)))
+       PEntityHistoryService
+       (find-entity-history [_ entity-id history-id auth]
+         (scaffold-get-history-call handler validator entity-id history-id (get-db-value-fn)))
+       (list-entity-history [_ id criteria sort-attrs from to auth]
+         (scaffold-list-entity-history-call handler validator id criteria sort-attrs from to (get-db-value-fn)))))
+  ([handler validator authorizator db-handle get-db-value-fn]
+     (reify 
+       PEntityService
+       (find-entity [_ id auth]
+         (scaffold-find-call handler validator authorizator id (get-db-value-fn) auth))
+       (delete-entity [_ id auth]
+         (scaffold-delete-call handler validator authorizator id (get-db-value-fn) db-handle auth))
+       (update-entity [_ attributes auth]
+         (scaffold-update-call handler validator authorizator attributes (get-db-value-fn) db-handle auth))
+       (add-entity [_ attributes auth]
+         (scaffold-add-call handler validator authorizator attributes (get-db-value-fn) db-handle auth))
+       (list-entities [_ criteria sort-attrs from to auth]
+         (scaffold-list-call handler validator authorizator criteria sort-attrs from to (get-db-value-fn) auth))
+       PEntityHistoryService
+       (find-entity-history [_ entity-id history-id auth]
+         (scaffold-get-history-call handler validator authorizator entity-id history-id (get-db-value-fn) auth))
+       (list-entity-history [_ id criteria sort-attrs from to auth]
+         (scaffold-list-entity-history-call handler validator authorizator id criteria sort-attrs from to (get-db-value-fn) auth)))))

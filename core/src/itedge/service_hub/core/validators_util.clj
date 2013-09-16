@@ -31,60 +31,60 @@
 
 (defn- relations-not-exist
   "Determines if given relations exist"
-  [relations entity-handler entity-datasource]
+  [relations entity-handler db-value]
   (some 
    (fn [item]
      (not (handle-exist-entity entity-handler 
                                (if (map? item) 
                                  ((handle-get-unique-identifier entity-handler) item) item) 
-                               entity-datasource)))
+                               db-value)))
    (if (coll? relations) relations (list relations))))
 
 (defn validate-insert-update-relations
   "Validates relation for insertion or update of given entity"
-  [attributes entity-key entity-handler entity-datasource]
+  [attributes entity-key entity-handler db-value]
   (when-let [related-value (entity-key attributes)]
-    (when (relations-not-exist related-value entity-handler entity-datasource)
+    (when (relations-not-exist related-value entity-handler db-value)
       (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))))
 
 (defn validate-mandatory-insert-relations
   "Validates mandatory relation for insertion of given entity"
-  [attributes entity-key entity-handler entity-datasource]
+  [attributes entity-key entity-handler db-value]
   (if-let [related-value (entity-key attributes)]
-    (when (relations-not-exist related-value entity-handler entity-datasource)
+    (when (relations-not-exist related-value entity-handler db-value)
       (util/get-service-result :conflict "mandatory related entity with given primary key does not exist"))
     (util/get-service-result :conflict "mandatory related entity is not present")))
 
 (defn validate-unique-fields
   "Validates unique fields among existing entities"
-  [attributes entity-handler entity-datasource unique-set]
+  [attributes entity-handler db-value unique-set]
   (let [unique-map (select-keys attributes unique-set)]
     (when (some (fn [e]
                   (let [criteria {(key e) (val e)}
                         pk (handle-get-unique-identifier entity-handler)
                         final-criteria (if (pk attributes) (assoc criteria pk {:not (pk attributes)}) criteria)]
-                    (not (zero? (handle-count-entities entity-handler final-criteria entity-datasource))))) unique-map)
+                    (not (zero? (handle-count-entities entity-handler final-criteria db-value))))) unique-map)
       (util/get-service-result :conflict "one or more unique values in entity are not unique among other entities"))))
 
 (defn validate-entity-still-there
   "Validates if given entity still exists in system for update operations"
-  [attributes entity-handler entity-datasource]
+  [attributes entity-handler db-value]
   (let [pk (handle-get-unique-identifier entity-handler)]
     (if-let [id (pk attributes)]
-      (when (not (handle-exist-entity entity-handler id entity-datasource))
+      (when (not (handle-exist-entity entity-handler id db-value))
         (util/get-service-result :gone "requested entity does not exist anymore, it was probably deleted by another user"))
       (util/get-service-result :conflict "requested entity does not posses id, which is required to check it's availability"))))
 
 (defn validate-entity-present
   "Validates if given entity is present in system"
-  [id entity-handler entity-datasource]
-  (when (not (handle-exist-entity entity-handler id entity-datasource))
+  [id entity-handler db-value]
+  (when (not (handle-exist-entity entity-handler id db-value))
     (util/get-service-result :not-found "entity with requested id was not found")))
 
 (defn validate-delete-relations
   "Validates if there are any conflicts with other entities on entity scheduled for deletion"
-  [id entity-key conflict-entity-handler entity-datasource]
-  (when (not (zero? (handle-count-entities conflict-entity-handler {entity-key id} entity-datasource)))
+  [id entity-key conflict-entity-handler db-value]
+  (when (not (zero? (handle-count-entities conflict-entity-handler {entity-key id} db-value)))
     (util/get-service-result :conflict "entity requested for deletion has mandatory relations to other entities")))
 
 (defn- validate-range
@@ -97,9 +97,9 @@
 
 (defn validate-list-range
   "Validates requested range for query operation"
-  [from to criteria entity-handler entity-datasource]
+  [from to criteria entity-handler db-value]
   (when (and from to)
-    (validate-range from to (handle-count-entities entity-handler criteria entity-datasource))))
+    (validate-range from to (handle-count-entities entity-handler criteria db-value))))
 
 (defn validate-implication-insert
   "Validates implication of two properties for insert operation, eq. if first property is present and not null, 
@@ -112,14 +112,14 @@
 (defn validate-implication-update
   "Validates implication of two properties for update operation, eq if first property not null, 
    second must be not null too"
-  [attributes entity-handler entity-datasource first second]
+  [attributes entity-handler db-value first second]
   (let [id ((handle-get-unique-identifier entity-handler) attributes)
-        attributes (merge (handle-find-entity entity-handler id entity-datasource) attributes)]
+        attributes (merge (handle-find-entity entity-handler id db-value) attributes)]
     (validate-implication-insert attributes first second)))
 
 (defn validate-date-times-chronology
   "Validates two dates, sooner and later"
-  [attributes entity-handler entity-datasource sooner-key later-key]
+  [attributes entity-handler db-value sooner-key later-key]
   (let [sooner (sooner-key attributes)
         later (later-key attributes)
         converted-sooner (when sooner (date-time-util/iso-8061-to-datetime sooner))
@@ -130,7 +130,7 @@
     (if (and converted-sooner converted-later)
       (decision-fn converted-sooner converted-later)
       (when-let [id ((handle-get-unique-identifier entity-handler) attributes)]
-        (let [attributes (handle-find-entity entity-handler id entity-datasource)
+        (let [attributes (handle-find-entity entity-handler id db-value)
               converted-sooner (or converted-sooner (sooner-key attributes))
               converted-later (or converted-later (later-key attributes))]
           (if (and converted-sooner converted-later)

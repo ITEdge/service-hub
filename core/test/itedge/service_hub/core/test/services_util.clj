@@ -85,7 +85,7 @@
                             (authorize-add-call [_ attributes _ auth] nil)
                             (authorize-list-call [_ criteria _ auth] nil)
                             (restrict-list-call [_ criteria _ auth] criteria))
-        test-service (scaffold-service test-handler test-validator test-authorizator (fn [] nil))]
+        test-service (scaffold-service test-handler test-validator test-authorizator nil (fn [] nil))]
     (is (= (get-success-response {:id 1 :name "test 1"}) (find-entity test-service 1 nil)))
     (is (= (get-success-delete-response 2) (delete-entity test-service 2 nil)))
     (is (= (get-success-response {:id 1 :name "updated 1"}) (update-entity test-service {:id 1 :name "updated 1"} nil)))
