@@ -1,5 +1,10 @@
 # Service-Hub Changelog
 
+## 1.3.2 - September 17, 2013
+
+* Handlers, Validators and Authorizators refactored to work with value based datasources
+* Added new abstractions for dealing with history capable services
+
 ## 1.3.1 - September 6, 2013
 
 * Added aditional boolean flag parameter 'parse-numeric?' to methods get-route, update-route and scaffols-crud-routes in namespace

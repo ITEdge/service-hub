@@ -4,12 +4,12 @@ Service-Hub is an opinionated framework for development of service-centered appl
 
 ## Releases and Dependancy Information
 
-Latest stable release is 1.3.1
+Latest stable release is 1.3.2
 
 Leiningen dependency information:
 
 ```clojure
-[service-hub "1.3.1"]
+[service-hub "1.3.2"]
 ```
 
 ## Example

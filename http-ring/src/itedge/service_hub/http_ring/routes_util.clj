@@ -127,6 +127,18 @@
                      (post-processing-fn)))
                 (create-status-code result)))))
 
+(defn get-crud-routes
+  ([path entity-service pk content-read content-write parse-numeric-id?]
+     (get-crud-routes path entity-service pk content-read content-write parse-numeric-id? nil))
+  ([path entity-service pk content-read content-write parse-numeric-id? post-fns]
+     (list 
+      (list-route path (partial list-entities entity-service nil) (:list post-fns identity) content-write)
+      (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write parse-numeric-id?)
+      (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
+      (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write parse-numeric-id?)     
+      (create-route path (partial add-entity entity-service) (:create post-fns identity) content-read content-write)
+      (delete-route path (partial delete-entity entity-service) (:delete post-fns identity) content-write parse-numeric-id?))))
+
 (defn scaffold-crud-routes
   "Creates standard REST routes for all CRUD operations, taking root path, entity service
    content-read, content-write functions, entity primary key and parse-bumeric-id? flag as parameters. 
@@ -143,13 +155,7 @@
   ([path entity-service pk content-read content-write parse-numeric-id?]
      (scaffold-crud-routes path entity-service pk content-read content-write parse-numeric-id? nil))
   ([path entity-service pk content-read content-write parse-numeric-id? post-fns]
-     (routes 
-      (list-route path (partial list-entities entity-service nil) (:list post-fns identity) content-write)
-      (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write parse-numeric-id?)
-      (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
-      (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write parse-numeric-id?)     
-      (create-route path (partial add-entity entity-service) (:create post-fns identity) content-read content-write)
-      (delete-route path (partial delete-entity entity-service) (:delete post-fns identity) content-write parse-numeric-id?))))
+    (apply routes (get-crud-routes path entity-service pk content-read content-write parse-numeric-id? post-fns))))
 
 (defn list-history-route
   "Returns route for list history calls - 'GET path/:id/history/' (uses sorting parameters from request if present).
@@ -189,7 +195,7 @@
   [path query-history-fn post-processing-fn content-write parse-numeric-id?]
   (GET [(str path "/:id/history"), :id #"[0-9]+"] [id :as request]
        (let [range (parse-range-headers request)
-             params (:params request)
+             params (-> (:params request) (dissoc :id))
              sort-args (parse-sort-args :sortBy params)
              auth (:auth request)
              result (query-history-fn (if parse-numeric-id? (util/parse-number id) id) params sort-args (:from range) (:to range) auth)]
@@ -198,6 +204,18 @@
                   (post-processing-fn)))
              (create-status-code result)
              (create-content-range-headers result)))))
+
+(defn get-crud-history-routes
+  ([path entity-history-service content-write parse-numeric-id?]
+     (get-crud-history-routes path entity-history-service content-write parse-numeric-id? nil))
+  ([path entity-history-service content-write parse-numeric-id? post-fns]
+     (list 
+      (list-history-route path (fn [id & args] (apply list-entity-history entity-history-service id nil args))
+                          (:list-history post-fns identity) content-write parse-numeric-id?)
+      (get-history-route path (partial find-entity-history entity-history-service) 
+                         (:get-history post-fns identity) content-write parse-numeric-id?)
+      (query-history-route path (partial list-entity-history entity-history-service) 
+                           (:query-history post-fns identity) content-write parse-numeric-id?))))
 
 (defn scaffold-crud-history-routes
   "Creates standard REST routes for all CRUD operations, taking root path, entity service
@@ -213,18 +231,10 @@
    optionally passed in as fifth argument, corresponding functions will be then called with
    result of the entity service call"
   ([path entity-service pk content-read content-write parse-numeric-id?]
-     (scaffold-crud-routes path entity-service pk content-read content-write parse-numeric-id? nil))
+     (scaffold-crud-history-routes path entity-service pk content-read content-write parse-numeric-id? nil))
   ([path entity-service pk content-read content-write parse-numeric-id? post-fns]
-     (routes 
-      (list-route path (partial list-entities entity-service nil) (:list post-fns identity) content-write)
-      (list-history-route path (partial list-entity-history entity-service nil) (:list-history post-fns identity) content-write)
-      (get-route path (partial find-entity entity-service) (:get post-fns identity) content-write parse-numeric-id?)
-      (get-history-route path (partial find-entity-history entity-service) (:get-history post-fns identity) content-write parse-numeric-id?)
-      (query-route path (partial list-entities entity-service) (:query post-fns identity) content-write)
-      (query-history-route path (partial list-entity-history entity-service) (:query-history post-fns identity) content-write)
-      (update-route path (partial update-entity entity-service) (:update post-fns identity) pk content-read content-write parse-numeric-id?)     
-      (create-route path (partial add-entity entity-service) (:create post-fns identity) content-read content-write)
-      (delete-route path (partial delete-entity entity-service) (:delete post-fns identity) content-write parse-numeric-id?))))
+    (apply routes (concat (get-crud-routes path entity-service pk content-read content-write parse-numeric-id? post-fns)
+                          (get-crud-history-routes path entity-service content-write parse-numeric-id? post-fns)))))
 
 (defn deny-request 
   "Deny request with specified reason"

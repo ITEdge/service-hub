@@ -66,6 +66,39 @@
          {"Content-Type" "application/json"
           "Content-Range" "items 0-3/4"})))
 
+(let [data [{:id 1 :t 1} {:id 1 :t 2} {:id 1 :t 3} {:id 2 :t 1}]]
+  (defn fake-list-history-fn [id criteria sort-attrs from to auth]
+    (let [filtered (into [] (filter (fn [item] (= (:id item) id)) data))]
+      (-> (services-util/get-success-response filtered)
+          (services-util/assoc-range-info from to (count filtered)))))
+
+  (defn fake-get-history-fn [entity-id history-id auth]
+    (services-util/get-success-response 
+     (first (filter (fn [item] 
+                      (and (= (:id item) entity-id) 
+                           (= (:t item) history-id))) data)))))
+
+(def test-history-service 
+  (reify PEntityHistoryService
+    (find-entity-history [_ entity-id history-id auth]
+      (fake-get-history-fn entity-id history-id auth))
+    (list-entity-history [_ id criteria sort-attrs from to auth]
+      (fake-list-history-fn id criteria sort-attrs from to auth))))
+
+(def history-routes
+  (apply routes (get-crud-history-routes "/tests" test-history-service content-util/craft-edn-response true)))
+
+(deftest test-history-routes
+  (is (= (:headers (history-routes {:request-method :get :uri "/tests/1/history/"}))
+         {"Content-Type" "application/edn"
+          "Content-Range" "items 0-2/3"}))
+  (is (= (:headers (history-routes {:request-method :get :uri "/tests/1/history"}))
+         {"Content-Type" "application/edn"
+          "Content-Range" "items 0-2/3"}))
+  (is (= (history-routes {:request-method :get :uri "/tests/1/history/2"})
+         {:status 200 :headers {"Content-Type" "application/edn"} 
+          :body "{:t 2, :id 1}"})))
+
 (deftest test-deny-request
   (= (deny-request "test reason" content-util/craft-json-response)
      {:status 401 :headers {"Content-Type" "application/json"} :body "test reason"}))
