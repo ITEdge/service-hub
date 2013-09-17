@@ -81,6 +81,12 @@
   (when (not (handle-exist-entity entity-handler id db-value))
     (util/get-service-result :not-found "entity with requested id was not found")))
 
+(defn validate-entity-history-present
+  "Validate if given entity history is present in system"
+  [entity-id history-id entity-history-handler db-value]
+  (when (not (handle-exist-entity-history entity-history-handler entity-id history-id db-value))
+    (util/get-service-result :not-found "entity history for given entity-id and history-id was not found")))
+
 (defn validate-delete-relations
   "Validates if there are any conflicts with other entities on entity scheduled for deletion"
   [id entity-key conflict-entity-handler db-value]
@@ -96,10 +102,16 @@
       (util/get-service-result :bad-range "Total count of given entities in system is smaller than lower range restriction"))))
 
 (defn validate-list-range
-  "Validates requested range for query operation"
+  "Validates requested range for list/query operation"
   [from to criteria entity-handler db-value]
   (when (and from to)
     (validate-range from to (handle-count-entities entity-handler criteria db-value))))
+
+(defn validate-list-history-range
+  "Validates requested range for list-history/query-history operation"
+  [from to id criteria entity-history-handler db-value]
+  (when (and from to)
+    (validate-range from to (handle-count-entity-history entity-history-handler id criteria db-value))))
 
 (defn validate-implication-insert
   "Validates implication of two properties for insert operation, eq. if first property is present and not null, 

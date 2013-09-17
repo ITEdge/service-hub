@@ -1,5 +1,10 @@
 # Service-Hub Changelog
 
+## 1.3.3 - September 17, 2013
+
+* New functions in validators-util namespace
+* Additional method for counting entity-history snapshots in PEntityHistory handler
+
 ## 1.3.2 - September 17, 2013
 
 * Handlers, Validators and Authorizators refactored to work with value based datasources

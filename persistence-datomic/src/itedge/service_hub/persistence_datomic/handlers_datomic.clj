@@ -30,30 +30,32 @@
 (defn create-handler [fieldset]
   (reify 
     PEntityHandler
-    (handle-find-entity [_ id datasource]
-      (get-entity-data id fieldset datasource))
-    (handle-exist-entity [_ id datasource]
-      (datomic-util/exist-entity? datasource fieldset (resolve-id-value id)))
+    (handle-find-entity [_ id db-value]
+      (get-entity-data id fieldset db-value))
+    (handle-exist-entity [_ id db-value]
+      (datomic-util/exist-entity? db-value fieldset (resolve-id-value id)))
     (handle-delete-entity [_ id conn]
       (datomic-util/delete-entity conn fieldset (resolve-id-value id)))
     (handle-update-entity [_ attributes conn]
       (datomic-util/update-entity conn (util/update-map-values attributes resolve-id-value)))
     (handle-add-entity [_ attributes conn]
       (datomic-util/add-entity conn (util/update-map-values attributes resolve-id-value)))
-    (handle-list-entities [_ criteria sort-attrs from to datasource]
-      (datomic-util/list-entities datasource fieldset (util/update-map-values criteria resolve-id-value) :db/id sort-attrs from to))
-    (handle-count-entities [_ criteria datasource]
-      (datomic-util/count-entities datasource fieldset (util/update-map-values criteria resolve-id-value) :db/id))
+    (handle-list-entities [_ criteria sort-attrs from to db-value]
+      (datomic-util/list-entities db-value fieldset (util/update-map-values criteria resolve-id-value) :db/id sort-attrs from to))
+    (handle-count-entities [_ criteria db-value]
+      (datomic-util/count-entities db-value fieldset (util/update-map-values criteria resolve-id-value) :db/id))
     (handle-get-unique-identifier [_]
       :db/id)
     PEntityHistoryHandler
-    (handle-list-entity-history [_ id criteria sort-attrs from to datasource]
+    (handle-find-entity-history [_ entity-id history-id db-value]
+      (datomic-util/get-entity-history db-value fieldset (resolve-id-value entity-id) history-id))
+    (handle-exist-entity-history [_ entity-id history-id db-value]
+      (datomic-util/exist-entity-history? db-value fieldset (resolve-id-value entity-id) history-id))
+    (handle-list-entity-history [_ id criteria sort-attrs from to db-value]
       (datomic-util/list-entities-with-history 
-       datasource fieldset (assoc (util/update-map-values criteria resolve-id-value) :db/id (resolve-id-value id)) 
+       db-value fieldset (assoc (util/update-map-values criteria resolve-id-value) :db/id (resolve-id-value id)) 
        :db/id sort-attrs from to))
-    (handle-find-entity-history [_ entity-id history-id datasource]
-      (datomic-util/get-entity-history datasource fieldset (resolve-id-value entity-id) history-id))
-    (handle-count-entity-history [_ id criteria datasource]
+    (handle-count-entity-history [_ id criteria db-value]
       (datomic-util/count-history-entities 
-       datasource fieldset (assoc (util/update-map-values criteria resolve-id-value) :db/id (resolve-id-value id))
+       db-value fieldset (assoc (util/update-map-values criteria resolve-id-value) :db/id (resolve-id-value id))
        :db/id))))

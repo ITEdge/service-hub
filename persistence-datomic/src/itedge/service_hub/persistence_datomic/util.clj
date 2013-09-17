@@ -26,6 +26,13 @@
       true
       false)))
 
+(defn exist-entity-history?
+  "Determines if history for given entity with minimal fieldset and history id exists in database "
+  [db fieldset entity-id history-id]
+  (if-let [history-db (as-of db (t->tx history-id))]
+    (exist-entity? history-db fieldset entity-id)
+    false))
+
 (defn get-entity
   "Gets entity with specified minimal fieldset and id, if no such entity exists, returns nil"
   [db fieldset id]
