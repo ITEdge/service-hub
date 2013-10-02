@@ -85,7 +85,7 @@
 (defn add-entity
   "Adds entity with given attributes in the specified connection"
   [conn attributes]
-  (let [temp-id (tempid :db.part/user -1)
+  (let [temp-id (tempid :db.part/user (:db/id attributes -1))
         tx-attributes (assoc attributes :db/id temp-id)
         tx-result @(transact conn [tx-attributes])
         final-id (resolve-tempid (db conn) (:tempids tx-result) temp-id)]
