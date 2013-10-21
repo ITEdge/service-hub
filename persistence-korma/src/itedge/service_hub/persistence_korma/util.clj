@@ -1,5 +1,6 @@
 (ns itedge.service-hub.persistence-korma.util
-  (:require [clojure.string :as string]
+  (:require [clojure.core.reducers :as r]
+            [clojure.string :as string]
             [itedge.service-hub.core.util :as util]
             [korma.db :as db]
             [korma.core :as korma]
@@ -66,12 +67,10 @@
 (defn- construct-relations
   "Constructs relations from attributes"
   [attributes]
-  (into {} (map (fn [entry] 
-                  (let [k (key entry)
-                        v (val entry)]
+  (into {} (r/map (fn [[k v]] 
                     (if (vector? v)
-                      (hash-map k (into [] (map (fn [item] (if (map? item) (:id item) item)) v)))
-                      (hash-map k (if (map? v) (:id v) v))))) attributes)))
+                      {k (into [] (r/map (fn [item] (if (map? item) (:id item) item)) v))}
+                      {k (if (map? v) (:id v) v)})) attributes)))
 
 (defn- extract-id
   "Extracts id from db insert results"
