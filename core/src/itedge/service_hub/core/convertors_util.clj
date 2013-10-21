@@ -1,5 +1,6 @@
 (ns itedge.service-hub.core.convertors-util
-  (:require [itedge.service-hub.core.convertors :refer :all]
+  (:require [clojure.core.reducers :as r]
+            [itedge.service-hub.core.convertors :refer :all]
             [itedge.service-hub.core.util :as util]))
 
 (defn- convert-value
@@ -14,10 +15,8 @@
 (defn- convert-map-values
   "Converts specified values in map by means of convert-fn"
   [m keys-set convert-fn]
-  (into {} (map (fn [item]
-                  (let [k (key item)
-                        v (val item)]
-                    (hash-map k (if (keys-set k) (convert-value convert-fn v) v)))) m)))
+  (into {} (r/map (fn [[k v]]
+                    {k (if (keys-set k) (convert-value convert-fn v) v)}) m)))
 
 (defn convert-specified-values
   "Converts specified values in map or vector of maps by means of convert-fn"
@@ -25,7 +24,7 @@
   (cond
    (nil? vals) vals
    (map? vals) (convert-map-values vals keys-set convert-fn)
-   (sequential? vals) (map #(convert-map-values % keys-set convert-fn) vals)
+   (sequential? vals) (into [] (r/map #(convert-map-values % keys-set convert-fn) vals))
    :else (throw (Exception. (str "Only converting of maps and sequences of maps is supported")))))
 
 (defn format-property
