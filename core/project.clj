@@ -1,4 +1,4 @@
-(defproject itedge/service-hub.core "1.3.3"
+(defproject itedge/service-hub.core "1.3.4-SNAPSHOT"
   :description "Service-Hub core functionality"
   :min-lein-version "2.0.0"
   :url "https://github.com/ITEdge/service-hub"
