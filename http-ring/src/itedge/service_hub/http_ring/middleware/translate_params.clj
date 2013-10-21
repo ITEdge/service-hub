@@ -1,12 +1,13 @@
 (ns itedge.service-hub.http-ring.middleware.translate-params
-  (:require [clojure.string :as string]
+  (:require [clojure.core.reducers :as r]
+            [clojure.string :as string]
             [itedge.service-hub.core.util :as util]))
 
 (defn- translate-params [target]
   (cond
-   (map? target) (into {} (for [[k v] target]
-                            [k (translate-params v)]))
-   (vector? target) (vec (map translate-params target))
+   (map? target) (reduce (fn [acc [k v]]
+                           (assoc acc k (translate-params v))) {} target)
+   (vector? target) (into [] (r/map translate-params target))
    :else (let [v (get {"null" nil "true" true "false" false} target target)]
            (if (and (string? v) (= \[ (first v)) (= \] (last v)))
              (mapv util/parse-number (string/split (.replaceAll v "\\[|\\]" "") #","))
