@@ -100,15 +100,15 @@
           :body "{:t 2, :id 1}"})))
 
 (deftest test-deny-request
-  (= (deny-request "test reason" content-util/craft-json-response)
-     {:status 401 :headers {"Content-Type" "application/json"} :body "test reason"}))
+  (is (= (deny-request "test reason" content-util/craft-json-response)
+         {:status 401 :headers {"Content-Type" "application/json"} :body "test reason"})))
 
 (deftest test-check-auth
-  (= (check-auth {:username "test" :password "test"} content-util/craft-json-response)
-     {:status 200 :headers {"Content-Type" "application/json"} 
-      :body "{\"username\":\"test\",\"password\":\"test\"}"})
-  (= (check-auth "bad credentials" content-util/craft-json-response)
-     (deny-request "bad credentials" content-util/craft-json-response)))
+  (is (= (check-auth {:username "test" :password "test"} content-util/craft-json-response)
+         {:status 200 :headers {"Content-Type" "application/json"} 
+          :body "{\"username\":\"test\",\"password\":\"test\"}"}))
+  (is (= (check-auth "bad credentials" content-util/craft-json-response)
+         (deny-request "bad credentials" content-util/craft-json-response))))
 
 
 
