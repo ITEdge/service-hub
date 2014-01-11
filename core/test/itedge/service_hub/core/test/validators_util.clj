@@ -30,8 +30,8 @@
 (deftest test-validate-allowed-fields
   (is (= (validate-allowed-fields {:a 1 :b 2} #{:a :b :c}) nil))
   (is (= (validate-allowed-fields {:a 1 :b 2 :c 3} #{:a :b :c}) nil))
-  (is (= (validate-allowed-fields {:a 1 :b 2 :c 3 :d 4} #{:a :b :c})) 
-         (util/get-service-result :conflict "one or more fields don't belong to the allowed fieldset")))
+  (is (= (validate-allowed-fields {:a 1 :b 2 :c 3 :d 4} #{:a :b :c}) 
+         (util/get-service-result :conflict "one or more fields don't belong to the allowed fieldset"))))
 
 (deftest test-validate-insert-update-relations
   (is (= (validate-insert-update-relations {:item 1} :item test-entity-handler nil) nil))
