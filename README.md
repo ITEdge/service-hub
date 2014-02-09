@@ -31,3 +31,7 @@ Peter Hanak (hanakpet)
 ## License
 
 Copyright (c) 2013 Jan Herich and released under Eclipse Public License
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ITEdge/service-hub/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
