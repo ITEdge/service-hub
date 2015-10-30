@@ -1,4 +1,4 @@
-(defproject itedge/service-hub "1.3.3"
+(defproject itedge/service-hub "1.3.4-SNAPSHOT"
   :description "Rapid development framework"
   :url "https://github.com/ITEdge/service-hub"
   :license {:name "The MIT License"
