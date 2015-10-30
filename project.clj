@@ -8,4 +8,5 @@
         "common"
         "persistence-korma"
         "persistence-datomic"
-        "http-ring" ])
+        "http-ring" ]
+  :deploy-repositories [["releases" :clojars]])
