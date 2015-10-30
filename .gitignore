@@ -5,6 +5,8 @@ pom.xml
 /targets/
 .lein-deps-sum
 .nrepl-port
+pom.xml
+pom.xml.asc
 /.project
 /target
 /.lein-failures
